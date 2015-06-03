@@ -1,0 +1,143 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Input\InputHook.cpp">
+      <Filter>Input</Filter>
+    </ClCompile>
+    <ClCompile Include="ASI Loader\ASILoader.cpp">
+      <Filter>ASI Loader</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenVHook.cpp" />
+    <ClCompile Include="Scripting\ScriptThread.cpp">
+      <Filter>Scripting\Script Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="Scripting\ScriptEngine.cpp">
+      <Filter>Scripting\Script Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Scripting\NativeInvoker.cpp">
+      <Filter>Scripting\Native Invoker</Filter>
+    </ClCompile>
+    <ClCompile Include="Scripting\ScriptManager.cpp">
+      <Filter>Scripting\Script Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\Pattern.cpp">
+      <Filter>Utility\Pattern</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\Console.cpp">
+      <Filter>Utility\Console</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\Log.cpp">
+      <Filter>Utility\Log</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\General.cpp">
+      <Filter>Utility\General</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\PEImage.cpp">
+      <Filter>Utility\PE Image</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Input">
+      <UniqueIdentifier>{e8950c58-a34c-458d-91df-a5429763f86f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ASI Loader">
+      <UniqueIdentifier>{0abb8b11-95af-4e5c-a947-4bb29115b7b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility">
+      <UniqueIdentifier>{9d373d22-c87f-4e58-ac62-d07dd39a620d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scripting">
+      <UniqueIdentifier>{fc7df339-555b-495e-9324-c46253b7da11}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scripting\Script Engine">
+      <UniqueIdentifier>{17b4c110-786b-43b7-835e-21b7a4fabcd5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scripting\Script Thread">
+      <UniqueIdentifier>{6360a881-c580-47b5-a2e5-6b1bb6557823}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scripting\Native Invoker">
+      <UniqueIdentifier>{3acbee36-5502-4cd0-9387-da2eda461d1d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scripting\Script Manager">
+      <UniqueIdentifier>{8c62d1fa-670a-4906-85c9-20fe21541974}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility\Pattern">
+      <UniqueIdentifier>{153181a6-98f5-47fd-bab2-a7ea18ed9f0e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility\Console">
+      <UniqueIdentifier>{65aa2044-23be-4fe1-99d3-e3affce2b487}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility\Log">
+      <UniqueIdentifier>{a94a9565-5380-4098-b7a9-299f228e3ccb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility\General">
+      <UniqueIdentifier>{253d7840-21f5-4db3-b4f9-686a7aac25df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility\PE Image">
+      <UniqueIdentifier>{b9b5bfd4-b258-4191-9415-94202c2034e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SDK">
+      <UniqueIdentifier>{ffd36cce-41fd-43b5-b289-9c6253165e81}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="OpenVHook.h" />
+    <ClInclude Include="Input\InputHook.h">
+      <Filter>Input</Filter>
+    </ClInclude>
+    <ClInclude Include="ASI Loader\ASILoader.h">
+      <Filter>ASI Loader</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripting\pgCollection.h">
+      <Filter>Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripting\ScriptThread.h">
+      <Filter>Scripting\Script Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripting\ScriptEngine.h">
+      <Filter>Scripting\Script Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripting\NativeHashMap.h">
+      <Filter>Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripting\NativeInvoker.h">
+      <Filter>Scripting\Native Invoker</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripting\ScriptManager.h">
+      <Filter>Scripting\Script Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\Pattern.h">
+      <Filter>Utility\Pattern</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\Console.h">
+      <Filter>Utility\Console</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\Log.h">
+      <Filter>Utility\Log</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\General.h">
+      <Filter>Utility\General</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\PEImage.h">
+      <Filter>Utility\PE Image</Filter>
+    </ClInclude>
+    <ClInclude Include="..\SDK\inc\main.h">
+      <Filter>SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\SDK\inc\nativeCaller.h">
+      <Filter>SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\SDK\inc\natives.h">
+      <Filter>SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\SDK\inc\types.h">
+      <Filter>SDK</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="LICENSE-ntauthority.txt" />
+  </ItemGroup>
+</Project>
