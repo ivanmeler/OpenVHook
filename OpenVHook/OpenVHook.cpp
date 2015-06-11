@@ -14,17 +14,17 @@ DWORD WINAPI Run() {
 	GetConsole()->Allocate();
 #endif
 
-	GetLog()->Print( "Initializing..." );
+	LOG_PRINT( "Initializing..." );
 
 	if ( !InputHook::Initialize() ) {
 
-		GetLog()->Error( "Failed to initialize InputHook" );
+		LOG_ERROR( "Failed to initialize InputHook" );
 		return 0;
 	}
 
 	if ( !ScriptEngine::Initialize() ) {
 
-		GetLog()->Error( "Failed to initialize ScriptEngine" );
+		LOG_ERROR( "Failed to initialize ScriptEngine" );
 		return 0;
 	}
 
@@ -32,14 +32,14 @@ DWORD WINAPI Run() {
 
 	ASILoader::Initialize();
 
-	GetLog()->Print( "Initialization finished" );
+	LOG_PRINT( "Initialization finished" );
 
 	return 1;
 }
 
 void Cleanup() {
 
-	GetLog()->Print( "Cleanup" );
+	LOG_PRINT( "Cleanup" );
 
 	// Maybe kill threads n shit
 
@@ -56,7 +56,7 @@ BOOL APIENTRY DllMain( HINSTANCE hModule, DWORD dwReason, LPVOID lpvReserved ) {
 		case DLL_PROCESS_ATTACH: {
 
 			SetOurModuleHanlde( hModule );
-			CreateThread( NULL, NULL, (LPTHREAD_START_ROUTINE)Run, NULL, NULL, NULL );
+			CloseHandle( CreateThread( NULL, NULL, (LPTHREAD_START_ROUTINE)Run, NULL, NULL, NULL ) );
 			break;
 		}
 		case DLL_PROCESS_DETACH: {

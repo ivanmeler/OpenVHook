@@ -8,7 +8,24 @@ namespace Utility {
 
 	static Log g_Log;
 
-	void Log::Print( const char * fmt, ... ) {
+	Log::Log() {
+
+		logTypeToColorMap[Utility::LogTypePrint] =		ConsoleForeground::WHITE;
+		logTypeToColorMap[Utility::LogTypeDebug] =		ConsoleForeground::GRAY;
+		logTypeToColorMap[Utility::LogTypeWarning] =	ConsoleForeground::YELLOW;
+		logTypeToColorMap[Utility::LogTypeError] =		ConsoleForeground::RED;
+
+		logTypeToFormatMap[Utility::LogTypePrint] =		"";
+		logTypeToFormatMap[Utility::LogTypeDebug] =		" [Debug]";
+		logTypeToFormatMap[Utility::LogTypeWarning]	=	" [Warning]";
+		logTypeToFormatMap[Utility::LogTypeError] =		" [Error]";
+	}
+
+	Log::~Log() {
+
+	}
+
+	void Log::Write( eLogType logType, const char * fmt, ... ) {
 
 		char buf[2048] = { 0 };
 		va_list va_alist;
@@ -16,83 +33,22 @@ namespace Utility {
 		va_start( va_alist, fmt );
 		vsprintf_s( buf, fmt, va_alist );
 		va_end( va_alist );
+
+		GetConsole()->SetTextColor( logTypeToColorMap[logType] );
 
 		char buff2[2048] = { 0 };
 		sprintf_s( buff2, "%s %s\n", GetTimeFormatted().c_str(), buf );
+		// Print to console
+		printf( buff2 );
 
-		if ( Utility::GetConsole()->IsAllocated() ) {
-
-			Utility::GetConsole()->SetTextColor( ConsoleForeground::WHITE );
-			printf( buff2 );
+#ifndef _DEBUG
+		if ( logType == LogTypeDebug ) {
+			return;
 		}
-
-		LogToFile( buff2 );
-	}
-
-	void Log::Debug( const char * fmt, ... ) {
-#ifdef _DEBUG 
-		char buf[2048] = { 0 };
-		va_list va_alist;
-
-		va_start( va_alist, fmt );
-		vsprintf_s( buf, fmt, va_alist );
-		va_end( va_alist );
-
-		char buff2[2048] = { 0 };
-
-		if ( Utility::GetConsole()->IsAllocated() ) {
-
-			sprintf_s( buff2, "%s %s\n", GetTimeFormatted().c_str(), buf );
-			Utility::GetConsole()->SetTextColor( ConsoleForeground::GRAY );
-			printf( buff2 );
-		}
-
-		sprintf_s( buff2, "%s Debug: %s\n", GetTimeFormatted().c_str(), buf );
-		LogToFile( buff2 );
 #endif
-	}
 
-	void Log::Warning( const char * fmt, ... ) {
-
-		char buf[2048] = { 0 };
-		va_list va_alist;
-
-		va_start( va_alist, fmt );
-		vsprintf_s( buf, fmt, va_alist );
-		va_end( va_alist );
-
-		char buff2[2048] = { 0 };
-
-		if ( Utility::GetConsole()->IsAllocated() ) {
-
-			sprintf_s( buff2, "%s %s\n", GetTimeFormatted().c_str(), buf );
-			Utility::GetConsole()->SetTextColor( ConsoleForeground::YELLOW );
-			printf( buff2 );
-		}
-
-		sprintf_s( buff2, "%s Warning: %s\n", GetTimeFormatted().c_str(), buf );
-		LogToFile( buff2 );
-	}
-
-	void Log::Error( const char * fmt, ... ) {
-
-		char buf[2048] = { 0 };
-		va_list va_alist;
-
-		va_start( va_alist, fmt );
-		vsprintf_s( buf, fmt, va_alist );
-		va_end( va_alist );
-
-		char buff2[2048] = { 0 };
-
-		if ( Utility::GetConsole()->IsAllocated() ) {
-
-			sprintf_s( buff2, "%s %s\n", GetTimeFormatted().c_str(), buf );
-			Utility::GetConsole()->SetTextColor( ConsoleForeground::RED );
-			printf( buff2 );
-		}
-
-		sprintf_s( buff2, "%s Error: %s\n", GetTimeFormatted().c_str(), buf );
+		sprintf_s( buff2, "%s%s %s\n", GetTimeFormatted().c_str(), logTypeToFormatMap[logType].c_str(), buf );
+		// Write to log file
 		LogToFile( buff2 );
 	}
 
@@ -111,20 +67,14 @@ namespace Utility {
 
 		const std::string fileName = GetOurModuleFolder() + "\\OpenVHook.log";
 
-		FILE * logFile = nullptr;
+		std::ofstream logFile;
+		logFile.open( fileName, std::ios_base::app );
+		if ( firstEntry ) {
 
-		fopen_s( &logFile, fileName.c_str(), "a+" );
-		if ( logFile != nullptr ) {
-
-			if ( firstEntry ) {
-
-				fwrite( "\n", 1, 1, logFile );
-				firstEntry = false;
-			}
-
-			fwrite( buff, strlen( buff ), 1, logFile );
-			fclose( logFile );
+			logFile << std::endl;
+			firstEntry = false;
 		}
+		logFile << buff;	
 	}
 
 	Log * GetLog() {

@@ -60,19 +60,20 @@ private:
 	void			Run();
 };
 
-typedef std::vector<std::shared_ptr<Script>> scriptVec;
+typedef std::map<HMODULE,std::shared_ptr<Script>> scriptMap;
 
 class ScriptManagerThread : public ScriptThread {
 private:
 
-	scriptVec				m_scripts;
+	scriptMap				m_scripts;
 
 public:
 
 	virtual void			DoRun() override;
 	virtual eThreadState	Reset( uint32_t scriptHash, void * pArgs, uint32_t argCount ) override;
-	void					AddScript( void( *fn )( ) );
+	void					AddScript( HMODULE module, void( *fn )( ) );
 	void					RemoveScript( void( *fn )( ) );
+	void					RemoveScript( HMODULE module );
 };
 
 namespace ScriptManager {

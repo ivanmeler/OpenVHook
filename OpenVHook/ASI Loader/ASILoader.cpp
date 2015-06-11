@@ -7,7 +7,7 @@ using namespace Utility;
 
 void ASILoader::Initialize() {
 
-	GetLog()->Print( "Loading *.asi plugins" );
+	LOG_PRINT( "Loading *.asi plugins" );
 
 	const std::string currentFolder = GetRunningExecutableFolder();
 	const std::string asiFolder = currentFolder + "\\asi";
@@ -22,27 +22,27 @@ void ASILoader::Initialize() {
 
 			const std::string pluginPath = asiFolder + "\\" + fileData.cFileName;
 
-			GetLog()->Print( "Loading \"%s\"", pluginPath.c_str() );
+			LOG_PRINT( "Loading \"%s\"", pluginPath.c_str() );
 
 			PEImage pluginImage;
 			if ( !pluginImage.Load( pluginPath ) ) {
 
-				GetLog()->Error( "\tFailed to load image" );
+				LOG_ERROR( "\tFailed to load image" );
 				continue;
 			}
 
 			// Image not compatible, needs patching
 			if ( !pluginImage.IsOpenVHookCompatible() ) {
 
-				GetLog()->Print( "\tDetected non compatible image. Patching compatibility" );
+				LOG_PRINT( "\tDetected non compatible image. Patching compatibility" );
 
 				if ( pluginImage.PatchCompatibility() ) {
 
-					GetLog()->Print( "\tSuccessfully patched" );
+					LOG_PRINT( "\tSuccessfully patched" );
 
 				} else {
 
-					GetLog()->Error( "\tFailed to patch compatibility" );
+					LOG_ERROR( "\tFailed to patch compatibility" );
 					continue;
 				}
 			}
@@ -50,9 +50,9 @@ void ASILoader::Initialize() {
 			// Image compatible (now), load it
 			HMODULE module = LoadLibraryA( pluginPath.c_str() );
 			if ( module ) {
-				GetLog()->Print( "\tLoaded \"%s\" => 0x%p", fileData.cFileName, module );
+				LOG_PRINT( "\tLoaded \"%s\" => 0x%p", fileData.cFileName, module );
 			} else {
-				GetLog()->Error( "\tFailed to load" );
+				LOG_ERROR( "\tFailed to load" );
 			}
 
 		} while ( FindNextFileA( fileHandle, &fileData ) );
@@ -60,5 +60,5 @@ void ASILoader::Initialize() {
 		FindClose( fileHandle );
 	}
 
-	GetLog()->Print( "Finished loading *.asi plugins" );
+	LOG_PRINT( "Finished loading *.asi plugins" );
 }

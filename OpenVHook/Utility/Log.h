@@ -3,15 +3,30 @@
 
 #include "..\OpenVHook.h"
 
+#define LOG_PRINT( fmt, ...)	GetLog()->Write( eLogType::LogTypePrint,	fmt, ##__VA_ARGS__ )
+#define LOG_DEBUG( fmt, ...)	GetLog()->Write( eLogType::LogTypeDebug,	fmt, ##__VA_ARGS__ )
+#define LOG_WARNING( fmt, ...)	GetLog()->Write( eLogType::LogTypeWarning,	fmt, ##__VA_ARGS__ )
+#define LOG_ERROR( fmt, ...)	GetLog()->Write( eLogType::LogTypeError,	fmt, ##__VA_ARGS__ )
+
 namespace Utility {
+
+	enum eLogType {
+		LogTypePrint,
+		LogTypeDebug,
+		LogTypeWarning,
+		LogTypeError,
+	};
+
+	typedef std::map<int32_t, int32_t> intIntMap;
+	typedef std::map<int32_t, std::string> intStringMap;
 
 	class Log {
 	public:
 
-		void				Print( const char * fmt, ... );
-		void				Debug( const char * fmt, ... );
-		void				Warning( const char * fmt, ... );
-		void				Error( const char * fmt, ... );
+		Log();
+		~Log();
+
+		void				Write( eLogType logType, const char * fmt, ... );
 				
 	private:
 
@@ -19,6 +34,9 @@ namespace Utility {
 
 		const std::string	GetTimeFormatted() const;
 
+
+		intIntMap			logTypeToColorMap;
+		intStringMap		logTypeToFormatMap;
 		bool				firstEntry = true;
 	};
 

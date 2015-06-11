@@ -51,11 +51,11 @@ namespace Utility {
 	class pattern_match {
 	private:
 
-		void* m_pointer;
+		void * m_pointer;
 
 	public:
 
-		inline pattern_match( void* pointer ) {
+		inline pattern_match( void * pointer ) {
 
 			m_pointer = pointer;
 		}
@@ -67,7 +67,7 @@ namespace Utility {
 				return nullptr;
 			}
 
-			char* ptr = reinterpret_cast<char*>( m_pointer );
+			char * ptr = reinterpret_cast<char*>( m_pointer );
 			return reinterpret_cast<T*>( ptr + offset );
 		}
 

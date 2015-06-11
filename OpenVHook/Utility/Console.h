@@ -66,7 +66,7 @@ namespace Utility {
 	private:
 
 		bool				isAllocated = false;
-		HANDLE				outputHandle;
+		HANDLE				outputHandle = INVALID_HANDLE_VALUE;
 	};
 
 	Console *				GetConsole();

@@ -66,6 +66,10 @@ namespace Utility {
 
 	void Console::SetTextColor( const int color ) {
 
+		if ( !isAllocated ) {
+			return;
+		}
+
 		CONSOLE_SCREEN_BUFFER_INFO screenBuffer;
 		GetConsoleScreenBufferInfo( outputHandle, &screenBuffer );
 
@@ -76,6 +80,10 @@ namespace Utility {
 	}
 
 	void Console::SetBackgroundColor( const int color ) {
+
+		if ( !isAllocated ) {
+			return;
+		}
 
 		CONSOLE_SCREEN_BUFFER_INFO screenBuffer;
 		GetConsoleScreenBufferInfo( outputHandle, &screenBuffer );

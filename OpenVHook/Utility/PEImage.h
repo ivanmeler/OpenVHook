@@ -5,6 +5,9 @@
 
 namespace Utility {
 
+	typedef const IMAGE_NT_HEADERS64 NT64H;
+	typedef std::vector<char> bufferVec;
+
 	class PEImage {
 	public:
 
@@ -26,10 +29,9 @@ namespace Utility {
 
 	private:
 
-		void *			fileBase = nullptr;
-		uint32_t		fileSize = 0;
 		std::string		filePath;
-		const IMAGE_NT_HEADERS64 * ntHeader = nullptr;
+		bufferVec		fileBuffer;
+		NT64H *			ntHeader = nullptr;
 	};
 
 }

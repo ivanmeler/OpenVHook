@@ -25,11 +25,11 @@ bool InputHook::Initialize() {
 	oWndProc = (WNDPROC)SetWindowLongPtr( windowHandle, GWLP_WNDPROC, (LONG_PTR)WndProc );
 	if ( oWndProc == NULL ) {
 
-		GetLog()->Error( "Failed to attach input hook" );
+		LOG_ERROR( "Failed to attach input hook" );
 		return false;
 	} else {
 
-		GetLog()->Print( "Input hook attached: WndProc 0x%p", (DWORD_PTR)oWndProc );
+		LOG_PRINT( "Input hook attached: WndProc 0x%p", (DWORD_PTR)oWndProc );
 		return true;
 	}
 }
@@ -38,6 +38,6 @@ void InputHook::Remove() {
 
 	HWND windowHandle = FindWindow( "grcWindow", NULL );
 	SetWindowLongPtr( windowHandle, GWLP_WNDPROC, (LONG_PTR)oWndProc );
-	GetLog()->Debug( "Removed input hook" );
+	LOG_DEBUG( "Removed input hook" );
 }
 

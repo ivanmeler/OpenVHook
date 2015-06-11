@@ -1,5 +1,6 @@
 #include "ScriptManager.h"
 #include "..\Utility\Log.h"
+#include "..\Utility\General.h"
 
 using namespace Utility;
 
@@ -29,7 +30,15 @@ void Script::Tick() {
 	} else {
 
 		scriptFiber = CreateFiber( NULL, []( LPVOID handler ) {
-			reinterpret_cast<Script*>( handler )->Run();
+
+			__try {
+
+				reinterpret_cast<Script*>( handler )->Run();
+
+			} __except ( EXCEPTION_EXECUTE_HANDLER ) {	
+
+				LOG_ERROR( "Error in script->Run" );
+			}
 		}, this );
 	}
 }
@@ -47,48 +56,71 @@ void Script::Yield( uint32_t time ) {
 
 void ScriptManagerThread::DoRun() {
 
-	scriptVec thisIterScripts( m_scripts );
+	scriptMap thisIterScripts( m_scripts );
 
-	for ( auto & script : thisIterScripts ) {
-		script->Tick();
+	for ( auto & pair : thisIterScripts ) {
+		pair.second->Tick();
 	}
 }
 
 eThreadState ScriptManagerThread::Reset( uint32_t scriptHash, void * pArgs, uint32_t argCount ) {
 
-	// Collect all script functions
-	std::vector<void( *)( )> scriptFunctions;
+	// Collect all scripts
+	scriptMap tempScripts;
 
-	for ( auto&& script : m_scripts ) {
-		scriptFunctions.push_back( script->GetCallbackFunction() );
+	for ( auto && pair : m_scripts ) {
+		tempScripts[pair.first] = pair.second;
 	}
 
-	// Clear the script list
+	// Clear the scripts
 	m_scripts.clear();
 
-	// Start all script functions
-	for ( auto && fn : scriptFunctions ) {
-		AddScript( fn );
+	// Start all scripts
+	for ( auto && pair : tempScripts ) {
+		AddScript( pair.first, pair.second->GetCallbackFunction() );
 	}
 
 	return ScriptThread::Reset( scriptHash, pArgs, argCount );
 }
 
-void ScriptManagerThread::AddScript( void( *fn )( ) ) {
+void ScriptManagerThread::AddScript( HMODULE module, void( *fn )( ) ) {
 
-	m_scripts.push_back( std::make_shared<Script>( fn ) );
+	const std::string moduleName = GetModuleNameWithoutExtension( module );
+
+	LOG_PRINT( "Registering script '%s' (0x%p)", moduleName.c_str(), fn );
+
+	if ( m_scripts.find( module ) != m_scripts.end() ) {
+
+		LOG_ERROR( "Script '%s' is already registered", moduleName.c_str() );
+		return;
+	}
+
+	m_scripts[module] = std::make_shared<Script>( fn );
 }
 
 void ScriptManagerThread::RemoveScript( void( *fn )( ) ) {
 
 	for ( auto it = m_scripts.begin(); it != m_scripts.end(); it++ ) {
 
-		if ( ( *it )->GetCallbackFunction() == fn ) {
+		auto pair = *it;
+		if ( pair.second->GetCallbackFunction() == fn ) {
 
-			m_scripts.erase( it );
-			return;
+			RemoveScript( pair.first );
 		}
 	}
+}
+
+void ScriptManagerThread::RemoveScript( HMODULE module ) {
+
+	auto pair = m_scripts.find( module );
+	if ( pair == m_scripts.end() ) {
+
+		LOG_ERROR( "Could not find script for module 0x%p", module );
+		return;
+	}
+
+	LOG_PRINT( "Unregistered script '%s'", GetModuleNameWithoutExtension( module ).c_str() );
+	m_scripts.erase( pair );
 }
 
 void DLL_EXPORT scriptWait( unsigned long waitTime ) {
@@ -96,16 +128,32 @@ void DLL_EXPORT scriptWait( unsigned long waitTime ) {
 	currentScript->Yield( waitTime );
 }
 
-void DLL_EXPORT scriptRegister( HMODULE hMod, void( *function )( ) ) {
+void DLL_EXPORT scriptRegister( HMODULE module, void( *function )( ) ) {
 
-	GetLog()->Debug( "Registering script: 0x%p", hMod );
-	g_ScriptManagerThread.AddScript( function );
+	g_ScriptManagerThread.AddScript( module, function );
 }
 
 void DLL_EXPORT scriptUnregister( void( *function )( ) ) {
 
-	GetLog()->Debug( "Unregistering script fn: 0x%p", function );
 	g_ScriptManagerThread.RemoveScript( function );
+}
+
+void DLL_EXPORT scriptUnregister( HMODULE module ) {
+	
+	g_ScriptManagerThread.RemoveScript( module );
+}
+
+int32_t DLL_EXPORT getGameVersion() {
+
+	// TODO: Actually implement this??
+	LOG_WARNING( "Aint nothin here in 'getGameVersion' bruv" );
+	return 0;
+}
+
+void DLL_EXPORT scriptRegisterAdditionalThread( HMODULE module, void( *function )( ) ) {
+
+	// TODO: Implement this at some point, to lazy right now
+	LOG_WARNING( "Aint nothin here in 'scriptRegisterAdditionalThread' bruv" );
 }
 
 static ScriptManagerContext g_context;
@@ -122,7 +170,7 @@ void DLL_EXPORT nativePush64( uint64_t value ) {
 	g_context.Push( value );
 }
 
-DLL_EXPORT uint64_t* nativeCall() {
+DLL_EXPORT uint64_t * nativeCall() {
 
 	auto fn = ScriptEngine::GetNativeHandler( g_hash );
 
@@ -133,7 +181,7 @@ DLL_EXPORT uint64_t* nativeCall() {
 			fn( &g_context );
 		} __except ( EXCEPTION_EXECUTE_HANDLER ) {
 
-			GetLog()->Error( "Error in nativeCall" );
+			LOG_ERROR( "Error in nativeCall" );
 		}
 	}
 

@@ -32,14 +32,14 @@ static eGameState * gameState;
 
 bool ScriptEngine::Initialize() {
 
-	GetLog()->Print( "Initializing ScriptEngine..." );
+	LOG_PRINT( "Initializing ScriptEngine..." );
 
 	auto scrThreadCollectionPattern =	pattern( "48 8B C8 EB 03 48 8B CB 48 8B 05" );
 	auto activeThreadTlsOffsetPattern = pattern( "48 8B 04 D0 4A 8B 14 00 48 8B 01 F3 44 0F 2C 42 20" );
 	auto scrThreadIdPattern =			pattern( "FF 40 5C 8B 15 ? ? ? ? 48 8B" );
 	auto registrationTablePattern =		pattern( "76 61 49 8B 7A 40 48 8D 0D" );
 	auto g_scriptHandlerMgrPattern =	pattern( "74 17 48 8B C8 E8 ? ? ? ? 48 8D 0D" );
-	auto gameStatePattern =				pattern( "44 39 3D ? ? ? ? 75 04" );
+	auto gameStatePattern =				pattern( "83 3D ? ? ? ? ? 8A D9 74 0A" );	
 
 	executable_meta executable;
 	executable.EnsureInit();
@@ -48,84 +48,84 @@ bool ScriptEngine::Initialize() {
 	char * location = scrThreadCollectionPattern.count( 1 ).get( 0 ).get<char>( 11 );
 	if ( location == nullptr ) {
 
-		GetLog()->Error( "Unable to find scrThreadCollection" );
+		LOG_ERROR( "Unable to find scrThreadCollection" );
 		return false;
 	}
 	scrThreadCollection = reinterpret_cast<decltype( scrThreadCollection )>( location + *(int32_t*)location + 4 );
-	GetLog()->Debug( "scrThreadCollection\t 0x%p (0x%.8X)", scrThreadCollection, reinterpret_cast<uintptr_t>(scrThreadCollection)-executable.begin() );
+	LOG_DEBUG( "scrThreadCollection\t 0x%p (0x%.8X)", scrThreadCollection, reinterpret_cast<uintptr_t>(scrThreadCollection)-executable.begin() );
 
 
 	// Get activet tls offset
 	uint32_t * tlsLoc = activeThreadTlsOffsetPattern.count( 1 ).get( 0 ).get<uint32_t>( -4 );
 	if ( tlsLoc == nullptr ) {
 
-		GetLog()->Error( "Unable to find activeThreadTlsOffset" );
+		LOG_ERROR( "Unable to find activeThreadTlsOffset" );
 		return false;
 	}
 	activeThreadTlsOffset = *tlsLoc;
-	GetLog()->Debug( "activeThreadTlsOffset 0x%.8X", activeThreadTlsOffset );
+	LOG_DEBUG( "activeThreadTlsOffset 0x%.8X", activeThreadTlsOffset );
 
 
 	// Get thread id & thread count
 	location = scrThreadIdPattern.count( 1 ).get( 0 ).get<char>( 5 );
 	if ( location == nullptr ) {
 
-		GetLog()->Error( "Unable to find scrThreadId" );
+		LOG_ERROR( "Unable to find scrThreadId" );
 		return false;
 	}
 	scrThreadId = reinterpret_cast<decltype( scrThreadId )>( location + *(int32_t*)location + 4 );
-	GetLog()->Debug( "scrThreadId\t\t 0x%p (0x%.8X)", scrThreadId, reinterpret_cast<uintptr_t>(scrThreadId)-executable.begin() );
+	LOG_DEBUG( "scrThreadId\t\t 0x%p (0x%.8X)", scrThreadId, reinterpret_cast<uintptr_t>(scrThreadId)-executable.begin() );
 
 	location -= 9;
 	scrThreadCount = reinterpret_cast<decltype( scrThreadCount )>( location + *(int32_t*)location + 4 );
 	if ( scrThreadCount == nullptr ) {
 
-		GetLog()->Error( "Unable to find scrThreadCount" );
+		LOG_ERROR( "Unable to find scrThreadCount" );
 		return false;
 	}
-	GetLog()->Debug( "scrThreadCount\t 0x%p (0x%.8X)", scrThreadCount, reinterpret_cast<uintptr_t>(scrThreadCount)-executable.begin() );
+	LOG_DEBUG( "scrThreadCount\t 0x%p (0x%.8X)", scrThreadCount, reinterpret_cast<uintptr_t>(scrThreadCount)-executable.begin() );
 
 
 	// Get registration table
 	location = registrationTablePattern.count( 1 ).get( 0 ).get<char>( 9 );
 	if ( location == nullptr  ) {
 
-		GetLog()->Error( "Unable to find registrationTable" );
+		LOG_ERROR( "Unable to find registrationTable" );
 		return false;
 	}
 	registrationTable = reinterpret_cast<decltype( registrationTable )>( location + *(int32_t*)location + 4 );
-	GetLog()->Debug( "registrationTable\t 0x%p (0x%.8X)", scrThreadCount, reinterpret_cast<uintptr_t>(scrThreadCount)-executable.begin() );
+	LOG_DEBUG( "registrationTable\t 0x%p (0x%.8X)", scrThreadCount, reinterpret_cast<uintptr_t>(scrThreadCount)-executable.begin() );
 
 	
 	// Get scriptHandlerMgr
 	location = g_scriptHandlerMgrPattern.count( 1 ).get( 0 ).get<char>( 13 );
 	if ( location == nullptr ) {
 
-		GetLog()->Error( "Unable to find g_scriptHandlerMgr" );
+		LOG_ERROR( "Unable to find g_scriptHandlerMgr" );
 		return false;
 	}
 	g_scriptHandlerMgr = reinterpret_cast<decltype( g_scriptHandlerMgr )>( location + *(int32_t*)location + 4 );
-	GetLog()->Debug( "g_scriptHandlerMgr\t 0x%p (0x%.8X)", g_scriptHandlerMgr, reinterpret_cast<uintptr_t>(g_scriptHandlerMgr)-executable.begin() );
+	LOG_DEBUG( "g_scriptHandlerMgr\t 0x%p (0x%.8X)", g_scriptHandlerMgr, reinterpret_cast<uintptr_t>(g_scriptHandlerMgr)-executable.begin() );
 
 
 	// Get game state
-	location = gameStatePattern.count( 1 ).get( 0 ).get<char>( 3 );
+	location = gameStatePattern.count( 1 ).get( 0 ).get<char>( 2 );
 	if ( location == nullptr ) {
 
-		GetLog()->Error( "Unable to find gameState" );
+		LOG_ERROR( "Unable to find gameState" );
 		return false;
 	}
-	gameState = reinterpret_cast<decltype( gameState )>( location + *(int32_t*)location + 4 );
-	GetLog()->Debug( "gameState\t\t 0x%p (0x%.8X)", gameState, reinterpret_cast<uintptr_t>(gameState)-executable.begin() );
+	gameState = reinterpret_cast<decltype( gameState )>( location + *(int32_t*)location + 5 );
+	LOG_DEBUG( "gameState\t\t 0x%p (0x%.8X)", gameState, reinterpret_cast<uintptr_t>(gameState)-executable.begin() );
 
 	// Check if game is ready
-	GetLog()->Print( "Checking if game is ready..." );
+	LOG_PRINT( "Checking if game is ready..." );
 	while ( !GetGameState() == GameStatePlaying  ) {		
 		Sleep( 100 );
 	}
-	GetLog()->Print( "Game ready" );
+	LOG_PRINT( "Game ready" );
 
-	GetLog()->Debug( "GtaThread collection size %d", scrThreadCollection->count() );
+	LOG_DEBUG( "GtaThread collection size %d", scrThreadCollection->count() );
 
 	return true;
 }
@@ -190,7 +190,7 @@ void ScriptEngine::CreateThread( ScriptThread * thread ) {
 
 	g_ownedThreads.insert( thread );
 
-	GetLog()->Debug( "Created thread, id %d", thread->GetId() );
+	LOG_DEBUG( "Created thread, id %d", thread->GetId() );
 }
 
 ScriptEngine::NativeHandler ScriptEngine::GetNativeHandler( uint64_t oldHash ) {
@@ -225,7 +225,7 @@ uint64_t ScriptEngine::GetNewHashFromOldHash( uint64_t oldHash ) {
 	auto pair = nativeHashMap.find( oldHash );
 	if ( pair == nativeHashMap.end() ) {
 
-		GetLog()->Error( "Failed to find new hash for 0x%p", oldHash );
+		LOG_ERROR( "Failed to find new hash for 0x%p", oldHash );
 		return 0;
 	}
 

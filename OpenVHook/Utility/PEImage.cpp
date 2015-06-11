@@ -1,5 +1,4 @@
 #include "PEImage.h"
-#include <fstream>
 
 namespace Utility {
 
@@ -9,25 +8,18 @@ namespace Utility {
 
 	PEImage::~PEImage() {
 
-		if ( fileBase != nullptr ) {
-			VirtualFree( fileBase, 0, MEM_RELEASE );
-		}
 	}
 
 	bool PEImage::Load( const std::string & path ) {
 
 		filePath = path;
 
-		HANDLE fileHandle = CreateFileA( path.c_str(), FILE_GENERIC_READ, 0x7, NULL, OPEN_EXISTING, 0, NULL );
-		if ( fileHandle == INVALID_HANDLE_VALUE ) {
+		std::ifstream inputFile( path, std::ios::binary );
+		if ( inputFile.fail() ) {
 			return false;
 		}
-
-		DWORD bytes = 0;
-		fileSize = GetFileSize( fileHandle, NULL );
-		fileBase = VirtualAlloc( NULL, fileSize, MEM_COMMIT, PAGE_READWRITE );
-		ReadFile( fileHandle, fileBase, fileSize, &bytes, NULL );
-		CloseHandle( fileHandle );
+		std::vector<char> bufferTemp( ( std::istreambuf_iterator<char>( inputFile ) ), ( std::istreambuf_iterator<char>() ) );
+		fileBuffer.swap( bufferTemp );
 
 		bool parseSuccess = ParsePE();
 		if ( !parseSuccess ) {
@@ -40,7 +32,7 @@ namespace Utility {
 	bool PEImage::ParsePE() {
 
 		// Get DOS header
-		const IMAGE_DOS_HEADER * dosHeader = reinterpret_cast<const IMAGE_DOS_HEADER*>( fileBase );
+		const IMAGE_DOS_HEADER * dosHeader = reinterpret_cast<const IMAGE_DOS_HEADER*>( fileBuffer.data() );
 
 		// Not a valid PE
 		if ( dosHeader->e_magic != IMAGE_DOS_SIGNATURE ) {
@@ -67,7 +59,7 @@ namespace Utility {
 
 			if ( rva >= sectionHeader->VirtualAddress && rva <= sectionHeader->VirtualAddress + sectionHeader->Misc.VirtualSize ) {
 
-				return reinterpret_cast<uint64_t>(fileBase)+( rva - sectionHeader->VirtualAddress + sectionHeader->PointerToRawData );
+				return reinterpret_cast<uint64_t>(fileBuffer.data())+( rva - sectionHeader->VirtualAddress + sectionHeader->PointerToRawData );
 			}
 		}
 
@@ -105,7 +97,7 @@ namespace Utility {
 
 				// Overwrite original file with changes
 				std::ofstream file( filePath, std::ios::binary | std::ios::out );
-				file.write( reinterpret_cast<char*>( fileBase ), fileSize );
+				file.write( reinterpret_cast<char*>( fileBuffer.data() ), fileBuffer.size() );
 				file.close();
 
 				return true;

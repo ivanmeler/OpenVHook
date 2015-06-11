@@ -11,6 +11,7 @@
 #include <sstream>
 #include <algorithm>
 #include <memory>
+#include <fstream>
 
 #include <unordered_map>
 #include <unordered_set>

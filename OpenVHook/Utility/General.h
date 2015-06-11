@@ -6,8 +6,9 @@
 namespace Utility {
 
 	const std::string	GetRunningExecutableFolder();
-
 	const std::string	GetOurModuleFolder();
+	const std::string	GetModuleName( const HMODULE module );
+	const std::string	GetModuleNameWithoutExtension( const HMODULE module );
 
 	void				SetOurModuleHanlde( const HMODULE module );
 	const HMODULE		GetOurModuleHandle();
