@@ -34,98 +34,113 @@ bool ScriptEngine::Initialize() {
 
 	LOG_PRINT( "Initializing ScriptEngine..." );
 
-	auto scrThreadCollectionPattern =	pattern( "48 8B C8 EB 03 48 8B CB 48 8B 05" );
-	auto activeThreadTlsOffsetPattern = pattern( "48 8B 04 D0 4A 8B 14 00 48 8B 01 F3 44 0F 2C 42 20" );
-	auto scrThreadIdPattern =			pattern( "FF 40 5C 8B 15 ? ? ? ? 48 8B" );
-	auto registrationTablePattern =		pattern( "76 61 49 8B 7A 40 48 8D 0D" );
-	auto g_scriptHandlerMgrPattern =	pattern( "74 17 48 8B C8 E8 ? ? ? ? 48 8D 0D" );
-	auto gameStatePattern =				pattern( "83 3D ? ? ? ? ? 8A D9 74 0A" );	
+	auto scrThreadCollectionPattern =	pattern("48 8B C8 EB 03 48 8B CB 48 8B 05");
+	auto activeThreadTlsOffsetPattern = pattern("48 8B 04 D0 4A 8B 14 00 48 8B 01 F3 44 0F 2C 42 20");
+	auto scrThreadIdPattern =			pattern("89 15 ? ? ? ? 48 8B 0C D8");
+	auto scrThreadCountPattern =		pattern("FF 0D ? ? ? ? 48 8B F9");
+	auto registrationTablePattern =		pattern("76 61 49 8B 7A 40 48 8D 0D");
+	auto g_scriptHandlerMgrPattern =	pattern("74 17 48 8B C8 E8 ? ? ? ? 48 8D 0D");
+	auto gameStatePattern =				pattern("83 3D ? ? ? ? ? 8A D9 74 0A");
+	auto getScriptIdBlock =				pattern("80 78 32 00 75 34 B1 01 E8");
 
 	executable_meta executable;
 	executable.EnsureInit();
 
 	// Get scrThreadCollection
-	char * location = scrThreadCollectionPattern.count( 1 ).get( 0 ).get<char>( 11 );
-	if ( location == nullptr ) {
+	char * location = scrThreadCollectionPattern.count(1).get(0).get<char>(11);
+	if (location == nullptr) {
 
-		LOG_ERROR( "Unable to find scrThreadCollection" );
+		LOG_ERROR("Unable to find scrThreadCollection");
 		return false;
 	}
-	scrThreadCollection = reinterpret_cast<decltype( scrThreadCollection )>( location + *(int32_t*)location + 4 );
-	LOG_DEBUG( "scrThreadCollection\t 0x%p (0x%.8X)", scrThreadCollection, reinterpret_cast<uintptr_t>(scrThreadCollection)-executable.begin() );
+	scrThreadCollection = reinterpret_cast<decltype(scrThreadCollection)>(location + *(int32_t*)location + 4);
+	LOG_DEBUG("scrThreadCollection\t 0x%p (0x%.8X)", scrThreadCollection, reinterpret_cast<uintptr_t>(scrThreadCollection) - executable.begin());
 
 
 	// Get activet tls offset
-	uint32_t * tlsLoc = activeThreadTlsOffsetPattern.count( 1 ).get( 0 ).get<uint32_t>( -4 );
-	if ( tlsLoc == nullptr ) {
+	uint32_t * tlsLoc = activeThreadTlsOffsetPattern.count(1).get(0).get<uint32_t>(-4);
+	if (tlsLoc == nullptr) {
 
-		LOG_ERROR( "Unable to find activeThreadTlsOffset" );
+		LOG_ERROR("Unable to find activeThreadTlsOffset");
 		return false;
 	}
 	activeThreadTlsOffset = *tlsLoc;
-	LOG_DEBUG( "activeThreadTlsOffset 0x%.8X", activeThreadTlsOffset );
+	LOG_DEBUG("activeThreadTlsOffset 0x%.8X", activeThreadTlsOffset);
 
+	// Get thread id
+	location = scrThreadIdPattern.count(1).get(0).get<char>(2);
+	if (location == nullptr) {
 
-	// Get thread id & thread count
-	location = scrThreadIdPattern.count( 1 ).get( 0 ).get<char>( 5 );
-	if ( location == nullptr ) {
-
-		LOG_ERROR( "Unable to find scrThreadId" );
+		LOG_ERROR("Unable to find scrThreadId");
 		return false;
 	}
-	scrThreadId = reinterpret_cast<decltype( scrThreadId )>( location + *(int32_t*)location + 4 );
-	LOG_DEBUG( "scrThreadId\t\t 0x%p (0x%.8X)", scrThreadId, reinterpret_cast<uintptr_t>(scrThreadId)-executable.begin() );
+	scrThreadId = reinterpret_cast<decltype(scrThreadId)>(location + *(int32_t*)location + 4);
+	LOG_DEBUG("scrThreadId\t\t 0x%p (0x%.8X)", scrThreadId, reinterpret_cast<uintptr_t>(scrThreadId) - executable.begin());
 
-	location -= 9;
-	scrThreadCount = reinterpret_cast<decltype( scrThreadCount )>( location + *(int32_t*)location + 4 );
-	if ( scrThreadCount == nullptr ) {
+	// Get thread count
+	location = scrThreadCountPattern.get(0).get<char>(2);
+	if (location == nullptr) {
 
-		LOG_ERROR( "Unable to find scrThreadCount" );
+		LOG_ERROR("Unable to find scrThreadCount");
 		return false;
 	}
-	LOG_DEBUG( "scrThreadCount\t 0x%p (0x%.8X)", scrThreadCount, reinterpret_cast<uintptr_t>(scrThreadCount)-executable.begin() );
-
+	scrThreadCount = reinterpret_cast<decltype(scrThreadCount)>(location + *(int32_t*)location + 4);
+	LOG_DEBUG("scrThreadCount\t 0x%p (0x%.8X)", scrThreadCount, reinterpret_cast<uintptr_t>(scrThreadCount) - executable.begin());
 
 	// Get registration table
-	location = registrationTablePattern.count( 1 ).get( 0 ).get<char>( 9 );
-	if ( location == nullptr  ) {
+	location = registrationTablePattern.count(1).get(0).get<char>(9);
+	if (location == nullptr ) {
 
-		LOG_ERROR( "Unable to find registrationTable" );
+		LOG_ERROR("Unable to find registrationTable");
 		return false;
 	}
-	registrationTable = reinterpret_cast<decltype( registrationTable )>( location + *(int32_t*)location + 4 );
-	LOG_DEBUG( "registrationTable\t 0x%p (0x%.8X)", scrThreadCount, reinterpret_cast<uintptr_t>(scrThreadCount)-executable.begin() );
+	registrationTable = reinterpret_cast<decltype(registrationTable)>(location + *(int32_t*)location + 4);
+	LOG_DEBUG("registrationTable\t 0x%p (0x%.8X)", scrThreadCount, reinterpret_cast<uintptr_t>(scrThreadCount) - executable.begin());
 
 	
 	// Get scriptHandlerMgr
-	location = g_scriptHandlerMgrPattern.count( 1 ).get( 0 ).get<char>( 13 );
-	if ( location == nullptr ) {
+	location = g_scriptHandlerMgrPattern.count(1).get(0).get<char>(13);
+	if (location == nullptr) {
 
-		LOG_ERROR( "Unable to find g_scriptHandlerMgr" );
+		LOG_ERROR("Unable to find g_scriptHandlerMgr");
 		return false;
 	}
-	g_scriptHandlerMgr = reinterpret_cast<decltype( g_scriptHandlerMgr )>( location + *(int32_t*)location + 4 );
-	LOG_DEBUG( "g_scriptHandlerMgr\t 0x%p (0x%.8X)", g_scriptHandlerMgr, reinterpret_cast<uintptr_t>(g_scriptHandlerMgr)-executable.begin() );
+	g_scriptHandlerMgr = reinterpret_cast<decltype(g_scriptHandlerMgr)>(location + *(int32_t*)location + 4);
+	LOG_DEBUG("g_scriptHandlerMgr\t 0x%p (0x%.8X)", g_scriptHandlerMgr, reinterpret_cast<uintptr_t>(g_scriptHandlerMgr) - executable.begin());
 
+	//script_location
+	void * script_location = getScriptIdBlock.count(1).get(0).get<void>(4);
+	if (script_location == nullptr) {
+
+		LOG_ERROR("Unable to find getScriptIdBlock");
+		return false;
+	}
+
+	// ERR_SYS_PURE
+	static uint8_t block[2] = { 0xEB };
+	unsigned long OldProtection;
+	VirtualProtect(script_location, 2, PAGE_EXECUTE_READWRITE, &OldProtection);
+	memcpy(&block, script_location, 2);
+	VirtualProtect(script_location, 2, OldProtection, NULL);
 
 	// Get game state
-	location = gameStatePattern.count( 1 ).get( 0 ).get<char>( 2 );
-	if ( location == nullptr ) {
+	location = gameStatePattern.count(1).get(0).get<char>(2);
+	if (location == nullptr) {
 
-		LOG_ERROR( "Unable to find gameState" );
+		LOG_ERROR("Unable to find gameState");
 		return false;
 	}
-	gameState = reinterpret_cast<decltype( gameState )>( location + *(int32_t*)location + 5 );
-	LOG_DEBUG( "gameState\t\t 0x%p (0x%.8X)", gameState, reinterpret_cast<uintptr_t>(gameState)-executable.begin() );
+	gameState = reinterpret_cast<decltype(gameState)>(location + *(int32_t*)location + 5);
+	LOG_DEBUG("gameState\t\t 0x%p (0x%.8X)", gameState, reinterpret_cast<uintptr_t>(gameState) - executable.begin());
 
 	// Check if game is ready
-	LOG_PRINT( "Checking if game is ready..." );
-	while ( !GetGameState() == GameStatePlaying  ) {		
-		Sleep( 100 );
+	LOG_PRINT("Checking if game is ready...");
+	while (!GetGameState() == GameStatePlaying ) {		
+		Sleep(100);
 	}
-	LOG_PRINT( "Game ready" );
+	LOG_PRINT("Game ready");
 
-	LOG_DEBUG( "GtaThread collection size %d", scrThreadCollection->count() );
+	LOG_DEBUG("GtaThread collection size %d", scrThreadCollection->count());
 
 	return true;
 }
