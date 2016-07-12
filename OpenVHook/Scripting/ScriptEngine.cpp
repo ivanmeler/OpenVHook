@@ -95,7 +95,7 @@ bool ScriptEngine::Initialize() {
 		return false;
 	}
 	registrationTable = reinterpret_cast<decltype(registrationTable)>(location + *(int32_t*)location + 4);
-	LOG_DEBUG("registrationTable\t 0x%p (0x%.8X)", scrThreadCount, reinterpret_cast<uintptr_t>(scrThreadCount) - executable.begin());
+	LOG_DEBUG("registrationTable\t 0x%p (0x%.8X)", registrationTable, reinterpret_cast<uintptr_t>(registrationTable) - executable.begin());
 
 	
 	// Get scriptHandlerMgr
