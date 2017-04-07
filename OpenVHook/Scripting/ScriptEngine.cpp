@@ -237,7 +237,7 @@ uint64_t ScriptEngine::GetNewHashFromOldHash( uint64_t oldHash ) {
 		return cachePair->second;
 	}
 
-	auto pair = nativeHashMap.find( oldHash );
+	auto pair = findHashPairIt(oldHash);//nativeHashMap.find( oldHash );
 	if ( pair == nativeHashMap.end() ) {
 
 		LOG_ERROR( "Failed to find new hash for 0x%p", oldHash );

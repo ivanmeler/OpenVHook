@@ -1,4 +1,5 @@
 #include "Pattern.h"
+#include <future>
 
 static std::multimap<uint64_t, uintptr_t> g_hints;
 
