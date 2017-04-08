@@ -263,3 +263,28 @@ void ScriptManager::WndProc( HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam 
 		}
 	}
 }
+
+// CitizenFX doesn't have globals normally - this is therefore a no-op
+DLL_EXPORT uint64_t* getGlobalPtr(int)
+{
+	// let the user party on a dummy global (allocate some buffer size at the end, though)
+	static uint64_t dummyGlobal[128];
+
+	return dummyGlobal;
+}
+
+// dummy pool functions (need implementation)
+int DLL_EXPORT worldGetAllVehicles(int* array, int arraySize)
+{
+	return 0;
+}
+
+int DLL_EXPORT worldGetAllPeds(int* array, int arraySize)
+{
+	return 0;
+}
+
+int DLL_EXPORT worldGetAllObjects(int* array, int arraySize)
+{
+	return 0;
+}
