@@ -191,13 +191,16 @@ enum eGameVersion : int {
 
 	G_VER_1_0_1011_1_STEAM, // 30
 	G_VER_1_0_1011_1_NOSTEAM, // 31
+
+	G_VER_1_0_1032_1_STEAM, // 32
+	G_VER_1_0_1032_1_NOSTEAM, // 33
 };
 
 eGameVersion DLL_EXPORT getGameVersion() {
 
 	// TODO: Actually implement this??
 	//LOG_WARNING( "Aint nothin here in 'getGameVersion' bruv" );
-	return G_VER_1_0_1011_1_STEAM; //lmao
+	return G_VER_1_0_1032_1_STEAM; //lmao
 }
 
 void DLL_EXPORT scriptRegisterAdditionalThread( HMODULE module, void( *function )( ) ) {

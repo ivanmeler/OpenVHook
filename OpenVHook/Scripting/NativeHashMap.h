@@ -17139,6 +17139,7 @@ static std::unordered_map<uint64_t, uint64_t> nativeHashMap_791_to_877 = {
 
 // map< NativeDB Hash ( v3XX ), Current Hash ( v37X )
 static std::unordered_map<uint64_t, uint64_t> nativeHashMap_base_to_791 = {
+	{ 0x0000000050597EE2 ,0x0000000050597EE2 },
 	{ 0x55e1d2758f34e437, 0xa71f2a34947d6592 },
 	{ 0x46f917f6b4128fe4, 0xadecf862874b38f9 },
 	{ 0xdace1be37d88af67, 0x35ee5291bb9c3d36 },
