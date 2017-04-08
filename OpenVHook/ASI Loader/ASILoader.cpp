@@ -52,7 +52,19 @@ void ASILoader::Initialize() {
 			if ( module ) {
 				LOG_PRINT( "\tLoaded \"%s\" => 0x%p", fileData.cFileName, module );
 			} else {
-				LOG_ERROR( "\tFailed to load" );
+				DWORD errorMessageID = ::GetLastError();
+				if (errorMessageID == 0)
+					LOG_ERROR( "\tFailed to load" );
+
+				LPSTR messageBuffer = nullptr;
+				size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+					NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+
+				std::string message(messageBuffer, size);
+
+				//Free the buffer.
+				LocalFree(messageBuffer);
+				LOG_ERROR( "\tFailed to load: %s", message.c_str() );
 			}
 
 		} while ( FindNextFileA( fileHandle, &fileData ) );
