@@ -6,6 +6,8 @@
 
 using namespace Utility;
 
+GlobalTable globalTable;
+
 static pgPtrCollection<ScriptThread> * scrThreadCollection;
 static uint32_t activeThreadTlsOffset;
 
@@ -13,6 +15,8 @@ static uint32_t * scrThreadId;
 static uint32_t * scrThreadCount;
 
 static scriptHandlerMgr * g_scriptHandlerMgr;
+
+//uint64_t * g_globalPtr;
 
 struct NativeRegistration {
 
@@ -42,6 +46,7 @@ bool ScriptEngine::Initialize() {
 	auto g_scriptHandlerMgrPattern =	pattern("74 17 48 8B C8 E8 ? ? ? ? 48 8D 0D");
 	auto gameStatePattern =				pattern("83 3D ? ? ? ? ? 8A D9 74 0A");
 	auto getScriptIdBlock =				pattern("80 78 32 00 75 34 B1 01 E8");
+	auto g_globalPtrPattern =			pattern("4C 8D 05 ? ? ? ? 4D 8B 08 4D 85 C9 74 11");
 
 	executable_meta executable;
 	executable.EnsureInit();
@@ -132,6 +137,18 @@ bool ScriptEngine::Initialize() {
 	}
 	gameState = reinterpret_cast<decltype(gameState)>(location + *(int32_t*)location + 5);
 	LOG_DEBUG("gameState\t\t 0x%p (0x%.8X)", gameState, reinterpret_cast<uintptr_t>(gameState) - executable.begin());
+
+
+	// Get global ptr
+	location = g_globalPtrPattern.count(1).get(0).get<char>(0);
+	if (location == nullptr) {
+
+		LOG_ERROR("Unable to find g_globalPtr");
+		return false;
+	}
+	//g_globalPtr = reinterpret_cast<decltype(g_globalPtr)>(location + *(int32_t*)(location + 3) + 7);
+	globalTable.GlobalBasePtr = (__int64**)(location + *(int*)(location + 3) + 7);
+	LOG_DEBUG("g_globalPtr\t 0x%p (0x%.8X)", globalTable.GlobalBasePtr, reinterpret_cast<uintptr_t>(globalTable.GlobalBasePtr) - executable.begin());
 
 	// Check if game is ready
 	LOG_PRINT("Checking if game is ready...");

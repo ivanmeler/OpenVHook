@@ -1,4 +1,5 @@
 #include "ScriptManager.h"
+#include "ScriptEngine.h"
 #include "..\Utility\Log.h"
 #include "..\Utility\General.h"
 
@@ -271,13 +272,9 @@ void ScriptManager::WndProc( HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam 
 	}
 }
 
-// CitizenFX doesn't have globals normally - this is therefore a no-op
-DLL_EXPORT uint64_t* getGlobalPtr(int)
+DLL_EXPORT uint64_t* getGlobalPtr(int index)
 {
-	// let the user party on a dummy global (allocate some buffer size at the end, though)
-	static uint64_t dummyGlobal[128];
-
-	return dummyGlobal;
+	return (uint64_t*)globalTable.AddressOf(index);
 }
 
 // dummy pool functions (need implementation)

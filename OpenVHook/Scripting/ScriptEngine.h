@@ -7,6 +7,16 @@
 #include "pgCollection.h"
 #include "NativeInvoker.h"
 
+struct GlobalTable
+{
+	__int64** GlobalBasePtr;
+	__int64* AddressOf(int index) const { return &(GlobalBasePtr[index >> 18 & 0x3F][index & 0x3FFFF]); }
+	bool IsInitialised()const { return *GlobalBasePtr != NULL; }
+};
+
+extern GlobalTable globalTable;
+//extern uint64_t * g_globalPtr;
+
 enum eGameState {
 	GameStatePlaying,
 	GameStateIntro,
