@@ -74,7 +74,7 @@ namespace Utility {
 			char * dllName = reinterpret_cast<char*>( RVAToVA( importTable->Name ) );
 
 			if ( strcmp( dllName, "ScriptHookV.dll" ) == 0 ) {
-				return false;
+				return true;
 			}
 		}
 

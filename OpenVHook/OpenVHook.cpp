@@ -10,9 +10,7 @@ using namespace Utility;
 
 DWORD WINAPI Run() {
 
-//#ifdef _DEBUG
 	GetConsole()->Allocate();
-//#endif
 
 	LOG_PRINT( "Initializing..." );
 
@@ -46,7 +44,7 @@ void Cleanup() {
 	InputHook::Remove();
 
 	if ( GetConsole()->IsAllocated() ) {
-		//GetConsole()->DeAllocate();
+		GetConsole()->DeAllocate();
 	}
 }
 

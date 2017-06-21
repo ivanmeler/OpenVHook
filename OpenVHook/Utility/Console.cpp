@@ -11,7 +11,7 @@ namespace Utility {
 		}
 
 		AllocConsole();
-		SetConsoleTitle( "OpenVHook" );
+		SetConsoleTitle( "OpenHookV" );
 
 		freopen( "CONOUT$", "w", stdout );
 		freopen( "CONOUT$", "w", stderr );

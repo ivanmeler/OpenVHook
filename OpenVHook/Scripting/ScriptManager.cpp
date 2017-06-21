@@ -2,6 +2,7 @@
 #include "ScriptEngine.h"
 #include "..\Utility\Log.h"
 #include "..\Utility\General.h"
+#include <mutex>
 
 using namespace Utility;
 
@@ -124,6 +125,7 @@ void ScriptManagerThread::RemoveScript( HMODULE module ) {
 	m_scripts.erase( pair );
 }
 
+
 void DLL_EXPORT scriptWait( unsigned long waitTime ) {
 
 	currentScript->Yield( waitTime );
@@ -204,14 +206,13 @@ enum eGameVersion : int {
 eGameVersion DLL_EXPORT getGameVersion() {
 
 	// TODO: Actually implement this??
-	//LOG_WARNING( "Aint nothin here in 'getGameVersion' bruv" );
-	return G_VER_1_0_1103_2_STEAM; //lmao
+	return G_VER_1_0_1103_2_STEAM;
 }
 
 void DLL_EXPORT scriptRegisterAdditionalThread( HMODULE module, void( *function )( ) ) {
 
 	// TODO: Implement this at some point, to lazy right now
-	LOG_WARNING( "Aint nothin here in 'scriptRegisterAdditionalThread' bruv" );
+	LOG_WARNING( "Plugin is trying to use 'scriptRegisterAdditionalThread' Implement me!!" );
 }
 
 static ScriptManagerContext g_context;
@@ -292,3 +293,22 @@ int DLL_EXPORT worldGetAllObjects(int* array, int arraySize)
 {
 	return 0;
 }
+
+DLL_EXPORT int createTexture(const char* fileName)
+{
+	return 0;
+}
+
+DLL_EXPORT void drawTexture(int id, int index, int level, int time,
+	float sizeX, float sizeY, float centerX, float centerY,
+	float posX, float posY, float rotation, float screenHeightScaleFactor,
+	float r, float g, float b, float a)
+{
+	return;
+}
+
+DLL_EXPORT int getScriptHandleBaseAddress(int addr)
+{
+	return 0;
+}
+
