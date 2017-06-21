@@ -7,7 +7,7 @@ using namespace Utility;
 
 void ASILoader::Initialize() {
 
-	LOG_PRINT( "Loading *.asi plugins" );
+	LOG_PRINT( "Loading plugins" );
 
 	const std::string currentFolder = GetRunningExecutableFolder();
 	const std::string asiFolder = currentFolder + "\\asi";
@@ -72,5 +72,6 @@ void ASILoader::Initialize() {
 		FindClose( fileHandle );
 	}
 
-	LOG_PRINT( "Finished loading *.asi plugins" );
+	LOG_PRINT( "Finished loading plugins" );
+	LOG_PRINT("SEAL__");
 }
