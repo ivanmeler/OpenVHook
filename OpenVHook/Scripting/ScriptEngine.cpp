@@ -16,6 +16,8 @@ static uint32_t * scrThreadCount;
 
 static scriptHandlerMgr * g_scriptHandlerMgr;
 
+int gameVersion;
+
 //uint64_t * g_globalPtr;
 
 struct NativeRegistration {
@@ -35,6 +37,67 @@ static std::unordered_map<uint64_t, uint64_t> foundHashCache;
 static eGameState * gameState;
 
 bool ScriptEngine::Initialize() {
+
+	LOG_PRINT("Initializing ScriptEngine...");
+
+	executable_meta executable;
+	executable.EnsureInit();
+
+	scrThreadCollection = reinterpret_cast<decltype(scrThreadCollection)>(0x142BD01B0);
+	LOG_DEBUG("scrThreadCollection\t 0x%p (0x%.8X)", scrThreadCollection, reinterpret_cast<uintptr_t>(scrThreadCollection) - executable.begin());
+
+	activeThreadTlsOffset = 0x830;
+	LOG_DEBUG("activeThreadTlsOffset 0x%.8X", activeThreadTlsOffset);
+
+	scrThreadId = reinterpret_cast<decltype(scrThreadId)>(0x142BCFB10);
+	LOG_DEBUG("scrThreadId\t\t 0x%p (0x%.8X)", scrThreadId, reinterpret_cast<uintptr_t>(scrThreadId) - executable.begin());
+
+	scrThreadCount = reinterpret_cast<decltype(scrThreadCount)>(0x142BD04F0);
+	LOG_DEBUG("scrThreadCount\t 0x%p (0x%.8X)", scrThreadCount, reinterpret_cast<uintptr_t>(scrThreadCount) - executable.begin());
+
+	registrationTable = reinterpret_cast<decltype(registrationTable)>(0x142BCF2F0);
+	LOG_DEBUG("registrationTable\t 0x%p (0x%.8X)", registrationTable, reinterpret_cast<uintptr_t>(registrationTable) - executable.begin());
+
+	g_scriptHandlerMgr = reinterpret_cast<decltype(g_scriptHandlerMgr)>(0x142451460);
+	LOG_DEBUG("g_scriptHandlerMgr\t 0x%p (0x%.8X)", g_scriptHandlerMgr, reinterpret_cast<uintptr_t>(g_scriptHandlerMgr) - executable.begin());
+
+	//script_location
+	void * script_location = (void*)0x1414F3192;
+	if (script_location == nullptr) {
+
+		LOG_ERROR("Unable to find getScriptIdBlock");
+		return false;
+	}
+
+	// ERR_SYS_PURE
+	static uint8_t block[2] = { 0xEB };
+	unsigned long OldProtection;
+	VirtualProtect(script_location, 2, PAGE_EXECUTE_READWRITE, &OldProtection);
+	memcpy(&block, script_location, 2);
+	VirtualProtect(script_location, 2, OldProtection, NULL);
+
+	gameState = reinterpret_cast<decltype(gameState)>(0x141F8B130);
+	LOG_DEBUG("gameState\t\t 0x%p (0x%.8X)", gameState, reinterpret_cast<uintptr_t>(gameState) - executable.begin());
+
+	globalTable.GlobalBasePtr = (__int64**)0x142BD02F0;
+	LOG_DEBUG("g_globalPtr\t\t 0x%p (0x%.8X)", globalTable.GlobalBasePtr, reinterpret_cast<uintptr_t>(globalTable.GlobalBasePtr) - executable.begin());
+
+	gameVersion = GetGameVersion();
+	LOG_PRINT("Game version #%i", gameVersion);
+
+	// Check if game is ready
+	LOG_PRINT("Checking if game is ready...");
+	while (!GetGameState() == GameStatePlaying) {
+		Sleep(100);
+	}
+	LOG_PRINT("Game ready");
+
+	LOG_DEBUG("GtaThread collection size %d", scrThreadCollection->count());
+
+	return true;
+}
+
+/*bool ScriptEngine::Initialize() {
 
 	LOG_PRINT( "Initializing ScriptEngine..." );
 
@@ -150,6 +213,10 @@ bool ScriptEngine::Initialize() {
 	globalTable.GlobalBasePtr = (__int64**)(location + *(int*)(location + 3) + 7);
 	LOG_DEBUG("g_globalPtr\t 0x%p (0x%.8X)", globalTable.GlobalBasePtr, reinterpret_cast<uintptr_t>(globalTable.GlobalBasePtr) - executable.begin());
 
+	gameVersion = GetGameVersion();
+
+	LOG_PRINT("Game version #%i", gameVersion);
+
 	// Check if game is ready
 	LOG_PRINT("Checking if game is ready...");
 	while (!GetGameState() == GameStatePlaying ) {		
@@ -160,7 +227,7 @@ bool ScriptEngine::Initialize() {
 	LOG_DEBUG("GtaThread collection size %d", scrThreadCollection->count());
 
 	return true;
-}
+}*/
 
 scriptHandlerMgr * ScriptEngine::GetScriptHandleMgr() {
 
@@ -254,7 +321,7 @@ uint64_t ScriptEngine::GetNewHashFromOldHash( uint64_t oldHash ) {
 		return cachePair->second;
 	}
 
-	auto pair = findHashPairIt(oldHash);//nativeHashMap.find( oldHash );
+	auto pair = nativeHashMap.find( oldHash );
 	if ( pair == nativeHashMap.end() ) {
 
 		LOG_ERROR( "Failed to find new hash for 0x%p", oldHash );
@@ -268,5 +335,72 @@ uint64_t ScriptEngine::GetNewHashFromOldHash( uint64_t oldHash ) {
 eGameState ScriptEngine::GetGameState() {
 
 	return *gameState;
+}
+
+int ScriptEngine::GetGameVersion()
+{
+	auto codeSig = *(DWORD*)0x140870000;
+
+	switch (codeSig)
+	{
+	case 0xE8012024:
+		return 0;
+	case 0xA29410:
+		return 1;
+	case 0x7D2205FF:
+		return 2;
+	case 0x1:
+		return 3;
+	case 0x1ECB9:
+		return 4;
+	case 0x100FF360:
+		return 5;
+	case 0x8B48FF79:
+		return 7;
+	case 0xC4834800:
+		return 9;
+	case 0xF000001:
+		return 10;
+	case 0xC86E0F66:
+		return 11;
+	case 0x57085889:
+		return 12;
+	case 0x28C48348:
+		return 13;
+	case 0x4DE2E800:
+		return 14;
+	case 0x8948C88B:
+		return 15;
+	case 0xF4397715:
+		return 16;
+	case 0x48FFF41E:
+		return 17;
+	case 0x36CB0305:
+		return 18;
+	case 0xB95A0589:
+		return 19;
+	case 0x8B48C88B:
+		return 20;
+	case 0xE80C75D2:
+		return 21;
+	case 0x137978C:
+		return 23;
+	case 0xB86AE800:
+		return 24;
+	case 0x75C68441:
+		return 27;
+	case 0x828B1C74:
+		return 28;
+	case 0xD8B4800:
+		return 29;
+	case 0x3C244C10:
+		return 30;
+	case 0xB2F4E30D:
+		return 31;
+	case 0x89587500:
+		return 35;
+	default:
+		return -1;
+	}
 }
 

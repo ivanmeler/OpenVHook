@@ -16,6 +16,7 @@ struct GlobalTable
 
 extern GlobalTable globalTable;
 //extern uint64_t * g_globalPtr;
+extern int gameVersion;
 
 enum eGameState {
 	GameStatePlaying,
@@ -68,6 +69,8 @@ public:
 	static uint64_t GetNewHashFromOldHash( uint64_t oldHash );
 
 	static eGameState GetGameState();
+
+	static int GetGameVersion();
 };
 
 #endif // __SCRIPT_ENGINE_H__
