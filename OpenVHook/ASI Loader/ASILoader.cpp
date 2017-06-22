@@ -31,22 +31,6 @@ void ASILoader::Initialize() {
 				continue;
 			}
 
-			// Image not compatible, needs patching
-			if ( !pluginImage.IsOpenVHookCompatible() ) {
-
-				LOG_PRINT( "\tDetected non compatible image. Patching compatibility" );
-
-				if ( pluginImage.PatchCompatibility() ) {
-
-					LOG_PRINT( "\tSuccessfully patched" );
-
-				} else {
-
-					LOG_ERROR( "\tFailed to patch compatibility" );
-					continue;
-				}
-			}
-
 			// Image compatible (now), load it
 			HMODULE module = LoadLibraryA( pluginPath.c_str() );
 			if ( module ) {

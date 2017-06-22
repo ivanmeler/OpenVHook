@@ -66,45 +66,5 @@ namespace Utility {
 		return 0;
 	}
 
-	bool PEImage::IsOpenVHookCompatible() {
-
-		auto * importTable = reinterpret_cast<PIMAGE_IMPORT_DESCRIPTOR>( GetDirectoryAddress( IMAGE_DIRECTORY_ENTRY_IMPORT ) );
-		for ( ; importTable->Name; ++importTable ) {
-
-			char * dllName = reinterpret_cast<char*>( RVAToVA( importTable->Name ) );
-
-			if ( strcmp( dllName, "ScriptHookV.dll" ) == 0 ) {
-				return true;
-			}
-		}
-
-		return true;
-	}
-
-	bool PEImage::PatchCompatibility() {
-
-		// Find ScriptHooKV import descriptor
-		auto * importTable = reinterpret_cast<PIMAGE_IMPORT_DESCRIPTOR>( GetDirectoryAddress( IMAGE_DIRECTORY_ENTRY_IMPORT ) );
-		for ( ; importTable->Name; ++importTable ) {
-
-			char * dllName = reinterpret_cast<char*>( RVAToVA( importTable->Name ) );
-
-			if ( strcmp( dllName, "ScriptHookV.dll" ) == 0 ) {
-
-				// Found it, patch that shit
-				ZeroMemory( dllName, strlen( dllName ) );
-				strcpy( dllName, "OpenVHook.dll" );
-
-				// Overwrite original file with changes
-				std::ofstream file( filePath, std::ios::binary | std::ios::out );
-				file.write( reinterpret_cast<char*>( fileBuffer.data() ), fileBuffer.size() );
-				file.close();
-
-				return true;
-			}
-		}
-
-		return false;
-	}
 
 }

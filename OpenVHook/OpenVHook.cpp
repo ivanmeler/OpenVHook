@@ -39,13 +39,12 @@ void Cleanup() {
 
 	LOG_PRINT( "Cleanup" );
 
-	// Maybe kill threads n shit
 
 	InputHook::Remove();
 
-	if ( GetConsole()->IsAllocated() ) {
+	/*if ( GetConsole()->IsAllocated() ) {
 		GetConsole()->DeAllocate();
-	}
+	}*/
 }
 
 BOOL APIENTRY DllMain( HINSTANCE hModule, DWORD dwReason, LPVOID lpvReserved ) {

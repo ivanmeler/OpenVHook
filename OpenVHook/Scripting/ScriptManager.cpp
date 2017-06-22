@@ -198,8 +198,8 @@ enum eGameVersion : int {
 	G_VER_1_0_1032_1_STEAM, // 32
 	G_VER_1_0_1032_1_NOSTEAM, // 33
 
-	G_VER_1_0_1103_2_STEAM, // 32
-	G_VER_1_0_1103_2_NOSTEAM, // 33
+	G_VER_1_0_1103_2_STEAM, // 34
+	G_VER_1_0_1103_2_NOSTEAM, // 35
 
 };
 
@@ -207,6 +207,7 @@ eGameVersion DLL_EXPORT getGameVersion() {
 
 	// TODO: Actually implement this??
 	return G_VER_1_0_1103_2_STEAM;
+	
 }
 
 void DLL_EXPORT scriptRegisterAdditionalThread( HMODULE module, void( *function )( ) ) {
@@ -281,22 +282,26 @@ DLL_EXPORT uint64_t* getGlobalPtr(int index)
 // dummy pool functions (need implementation)
 int DLL_EXPORT worldGetAllVehicles(int* array, int arraySize)
 {
+	LOG_WARNING("plugin is trying to use worldGetAllVehicles");
 	return 0;
 }
 
 int DLL_EXPORT worldGetAllPeds(int* array, int arraySize)
 {
+	LOG_WARNING("plugin is trying to use worldGetAllPeds");
 	return 0;
 }
 
 int DLL_EXPORT worldGetAllObjects(int* array, int arraySize)
 {
+	LOG_WARNING("plugin is trying to use worldGetAllObjects");
 	return 0;
 }
 
 DLL_EXPORT int createTexture(const char* fileName)
 {
 	return 0;
+	LOG_WARNING("plugin is trying to use createTexture");
 }
 
 DLL_EXPORT void drawTexture(int id, int index, int level, int time,
@@ -304,11 +309,13 @@ DLL_EXPORT void drawTexture(int id, int index, int level, int time,
 	float posX, float posY, float rotation, float screenHeightScaleFactor,
 	float r, float g, float b, float a)
 {
+	LOG_WARNING("plugin is trying to use drawTexture");
 	return;
 }
 
 DLL_EXPORT int getScriptHandleBaseAddress(int addr)
 {
+	LOG_WARNING("plugin is trying to use getScriptHandleBaseAddress");
 	return 0;
 }
 
