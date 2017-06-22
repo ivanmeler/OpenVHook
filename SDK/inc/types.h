@@ -27,6 +27,7 @@ typedef int Camera;
 typedef int TaskSequence;
 typedef int ColourIndex;
 typedef int Sphere;
+typedef int ScrHandle;
 
 #pragma pack(push, 1)
 typedef struct

@@ -257,9 +257,9 @@ void ScriptEngine::CreateThread( ScriptThread * thread ) {
 	auto collection = GetThreadCollection();
 	int slot = 0;
 
-	for ( auto & thread : *collection ) {
+	for ( auto & itThread : *collection ) {
 
-		auto context = thread->GetContext();
+		auto context = itThread->GetContext();
 
 		if ( context->m_iThreadId == 0 ) {
 			break;

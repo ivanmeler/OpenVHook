@@ -2,7 +2,23 @@
 
 static HMODULE ourModule;
 
-const std::string Utility::GetRunningExecutableFolder() {
+std::string Utility::GetFilename( std::string filename )
+{
+	size_t lastIndex = filename.find_last_of("\\") + 1;
+	return filename.substr(lastIndex, filename.length() - lastIndex);
+}
+
+std::string Utility::GetFilenameWithoutExtension( std::string filename )
+{
+	size_t lastIndex = filename.find_last_of(".");
+	if (lastIndex == -1) {
+		return filename;
+	}
+
+	return filename.substr(0, lastIndex);
+}
+
+std::string Utility::GetRunningExecutableFolder() {
 
 	char fileName[MAX_PATH];
 	GetModuleFileNameA( NULL, fileName, MAX_PATH );
@@ -11,7 +27,7 @@ const std::string Utility::GetRunningExecutableFolder() {
 	return currentPath.substr( 0, currentPath.find_last_of( "\\" ) );
 }
 
-const std::string Utility::GetOurModuleFolder() {
+std::string Utility::GetOurModuleFolder() {
 
 	char fileName[MAX_PATH];
 	GetModuleFileNameA( ourModule, fileName, MAX_PATH );
@@ -20,35 +36,28 @@ const std::string Utility::GetOurModuleFolder() {
 	return currentPath.substr( 0, currentPath.find_last_of( "\\" ) );
 }
 
-const std::string Utility::GetModuleName( const HMODULE module ) {
+std::string Utility::GetModuleName(const HMODULE module) {
 
 	char fileName[MAX_PATH];
-	GetModuleFileNameA( module, fileName, MAX_PATH );
+	GetModuleFileNameA(module, fileName, MAX_PATH);
 
 	std::string fullPath = fileName;
 
-	size_t lastIndex = fullPath.find_last_of( "\\" ) + 1;
-	return fullPath.substr( lastIndex, fullPath.length() - lastIndex );
+	return GetFilename(fullPath);
 }
 
-const std::string Utility::GetModuleNameWithoutExtension( const HMODULE module ) {
+std::string Utility::GetModuleNameWithoutExtension( const HMODULE module ) {
 
-	const std::string fileNameWithExtension = GetModuleName( module );
-
-	size_t lastIndex = fileNameWithExtension.find_last_of( "." );
-	if ( lastIndex == -1 ) {
-		return fileNameWithExtension;
-	}
-
-	return fileNameWithExtension.substr( 0, lastIndex );
+	const std::string fileNameWithExtension = GetModuleName(module);
+	return GetFilenameWithoutExtension(fileNameWithExtension);
 }
 
-void Utility::SetOurModuleHanlde( const HMODULE module ) {
+void Utility::SetOurModuleHandle( const HMODULE module ) {
 
 	ourModule = module;
 }
 
-const HMODULE Utility::GetOurModuleHandle() {
+HMODULE Utility::GetOurModuleHandle() {
 
 	return ourModule;
 }

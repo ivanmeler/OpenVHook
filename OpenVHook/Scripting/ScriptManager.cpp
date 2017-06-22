@@ -2,6 +2,8 @@
 #include "ScriptEngine.h"
 #include "..\Utility\Log.h"
 #include "..\Utility\General.h"
+#include "..\Addresses.h"
+#include "../Types.h"
 #include <mutex>
 
 using namespace Utility;
@@ -9,10 +11,14 @@ using namespace Utility;
 #pragma comment(lib, "winmm.lib")
 #define DLL_EXPORT __declspec( dllexport )
 
+enum eGameVersion;
+
 ScriptManagerThread g_ScriptManagerThread;
 
 static HANDLE		mainFiber;
 static Script *		currentScript;
+
+std::mutex mutex;
 
 void Script::Tick() {
 
@@ -46,7 +52,6 @@ void Script::Tick() {
 }
 
 void Script::Run() {
-
 	callbackFunction();
 }
 
@@ -57,6 +62,8 @@ void Script::Yield( uint32_t time ) {
 }
 
 void ScriptManagerThread::DoRun() {
+
+	std::unique_lock<std::mutex> lock(mutex);
 
 	scriptMap thisIterScripts( m_scripts );
 
@@ -91,6 +98,8 @@ void ScriptManagerThread::AddScript( HMODULE module, void( *fn )( ) ) {
 
 	LOG_PRINT( "Registering script '%s' (0x%p)", moduleName.c_str(), fn );
 
+	std::unique_lock<std::mutex> lock(mutex);
+
 	if ( m_scripts.find( module ) != m_scripts.end() ) {
 
 		LOG_ERROR( "Script '%s' is already registered", moduleName.c_str() );
@@ -102,17 +111,20 @@ void ScriptManagerThread::AddScript( HMODULE module, void( *fn )( ) ) {
 
 void ScriptManagerThread::RemoveScript( void( *fn )( ) ) {
 
-	for ( auto it = m_scripts.begin(); it != m_scripts.end(); it++ ) {
+	for ( auto it = m_scripts.begin(); it != m_scripts.end(); ++it ) {
 
 		auto pair = *it;
 		if ( pair.second->GetCallbackFunction() == fn ) {
 
 			RemoveScript( pair.first );
+			break;
 		}
 	}
 }
 
 void ScriptManagerThread::RemoveScript( HMODULE module ) {
+
+	std::unique_lock<std::mutex> lock(mutex);
 
 	auto pair = m_scripts.find( module );
 	if ( pair == m_scripts.end() ) {
@@ -124,7 +136,6 @@ void ScriptManagerThread::RemoveScript( HMODULE module ) {
 	LOG_PRINT( "Unregistered script '%s'", GetModuleNameWithoutExtension( module ).c_str() );
 	m_scripts.erase( pair );
 }
-
 
 void DLL_EXPORT scriptWait( unsigned long waitTime ) {
 
@@ -146,68 +157,9 @@ void DLL_EXPORT scriptUnregister( HMODULE module ) {
 	g_ScriptManagerThread.RemoveScript( module );
 }
 
-enum eGameVersion : int {
-	G_VER_1_0_335_2_STEAM, // 00
-	G_VER_1_0_335_2_NOSTEAM, // 01
-
-	G_VER_1_0_350_1_STEAM, // 02
-	G_VER_1_0_350_2_NOSTEAM, // 03
-
-	G_VER_1_0_372_2_STEAM, // 04
-	G_VER_1_0_372_2_NOSTEAM, // 05
-
-	G_VER_1_0_393_2_STEAM, // 06
-	G_VER_1_0_393_2_NOSTEAM, // 07
-
-	G_VER_1_0_393_4_STEAM, // 08
-	G_VER_1_0_393_4_NOSTEAM, // 09
-
-	G_VER_1_0_463_1_STEAM, // 10
-	G_VER_1_0_463_1_NOSTEAM, // 11
-
-	G_VER_1_0_505_2_STEAM, // 12
-	G_VER_1_0_505_2_NOSTEAM, // 13
-
-	G_VER_1_0_573_1_STEAM, // 14
-	G_VER_1_0_573_1_NOSTEAM, // 15
-
-	G_VER_1_0_617_1_STEAM, // 16
-	G_VER_1_0_617_1_NOSTEAM, // 17
-
-	G_VER_1_0_678_1_STEAM, // 18
-	G_VER_1_0_678_1_NOSTEAM, // 19
-
-	G_VER_1_0_757_2_STEAM, // 20
-	G_VER_1_0_757_2_NOSTEAM, // 21
-
-	G_VER_1_0_757_4_STEAM, // 22
-	G_VER_1_0_757_4_NOSTEAM, // 23
-
-	G_VER_1_0_791_2_STEAM, // 24
-	G_VER_1_0_791_2_NOSTEAM, // 25
-
-	G_VER_1_0_877_1_STEAM, // 26
-	G_VER_1_0_877_1_NOSTEAM, // 27
-
-	G_VER_1_0_944_2_STEAM, // 28
-	G_VER_1_0_944_2_NOSTEAM, // 29
-
-	G_VER_1_0_1011_1_STEAM, // 30
-	G_VER_1_0_1011_1_NOSTEAM, // 31
-
-	G_VER_1_0_1032_1_STEAM, // 32
-	G_VER_1_0_1032_1_NOSTEAM, // 33
-
-	G_VER_1_0_1103_2_STEAM, // 34
-	G_VER_1_0_1103_2_NOSTEAM, // 35
-
-};
-
 eGameVersion DLL_EXPORT getGameVersion() {
 
-	// TODO: Actually implement this??
-	return G_VER_1_0_1103_2_STEAM;
-	
+	return (eGameVersion)gameVersion;
 }
 
 void DLL_EXPORT scriptRegisterAdditionalThread( HMODULE module, void( *function )( ) ) {
@@ -262,15 +214,12 @@ void DLL_EXPORT keyboardHandlerUnregister( TKeyboardFn function ) {
 	g_keyboardFunctions.erase( function );
 }
 
-void ScriptManager::WndProc( HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam ) {
+void ScriptManager::HandleKeyEvent(DWORD key, WORD repeats, BYTE scanCode, BOOL isExtended, BOOL isWithAlt, BOOL wasDownBefore, BOOL isUpNow) {
 
-	if ( uMsg == WM_KEYDOWN || uMsg == WM_KEYUP || uMsg == WM_SYSKEYDOWN || uMsg == WM_SYSKEYUP ) {
+	auto functions = g_keyboardFunctions;
 
-		auto functions = g_keyboardFunctions;
-
-		for ( auto & function : functions ) {
-			function( (DWORD)wParam, lParam & 0xFFFF, ( lParam >> 16 ) & 0xFF, ( lParam >> 24 ) & 1, ( uMsg == WM_SYSKEYDOWN || uMsg == WM_SYSKEYUP ), ( lParam >> 30 ) & 1, ( uMsg == WM_SYSKEYUP || uMsg == WM_KEYUP ) );
-		}
+	for (auto & function : functions) {
+		function(key, repeats, scanCode, isExtended, isWithAlt, wasDownBefore, isUpNow);
 	}
 }
 
@@ -279,29 +228,131 @@ DLL_EXPORT uint64_t* getGlobalPtr(int index)
 	return (uint64_t*)globalTable.AddressOf(index);
 }
 
-// dummy pool functions (need implementation)
+BYTE DLL_EXPORT *getScriptHandleBaseAddress(int handle)
+{
+	auto scriptEntityPool = *(fwPool<fwScriptGuid>**)entityPoolAddressArr[gameVersion];
+
+	int index = handle >> 8;
+
+	if (index > scriptEntityPool->m_count || !scriptEntityPool->isValid(index)) return NULL;
+
+	auto * poolObj = scriptEntityPool->m_pData + index * scriptEntityPool->m_itemSize;
+
+	return poolObj ? reinterpret_cast<BYTE*>(poolObj->m_pEntity) : NULL;
+}
+
 int DLL_EXPORT worldGetAllVehicles(int* array, int arraySize)
 {
-	LOG_WARNING("plugin is trying to use worldGetAllVehicles");
-	return 0;
+	auto vehiclePool = **(VehiclePool***)vehiclePoolAddressArr[gameVersion];
+	auto scriptEntityPool = *(fwPool<fwScriptGuid>**)entityPoolAddressArr[gameVersion];
+	auto getScriptHandleFn = (int32_t(*)(LPVOID))getEntityScrHandleAddressArr[gameVersion];
+
+	if (vehiclePool->m_count <= 0)
+		return 0;
+
+	int index = 0;
+
+	for (auto i = 0; i < vehiclePool->m_count; i++)
+	{
+		if (i >= arraySize || i >= vehiclePool->m_count || scriptEntityPool->full())
+			break;
+
+		auto address = vehiclePool->getAddress(i);
+
+		if (!vehiclePool->isValid(i) || !address)
+			continue;
+
+		array[index++] = getScriptHandleFn(address);
+	}
+
+	return index;
 }
 
 int DLL_EXPORT worldGetAllPeds(int* array, int arraySize)
 {
-	LOG_WARNING("plugin is trying to use worldGetAllPeds");
-	return 0;
+	auto pedPool = *(fwGenericPool**)pedPoolAddressArr[gameVersion];
+	auto scriptEntityPool = *(fwPool<fwScriptGuid>**)entityPoolAddressArr[gameVersion];
+	auto getScriptHandleFn = (int32_t(*)(LPVOID))getEntityScrHandleAddressArr[gameVersion];
+
+	if (pedPool->m_count <= 0)
+		return 0;
+
+	int index = 0;
+
+	for (auto i = 0; i < pedPool->m_count; i++)
+	{
+		if (i >= arraySize || i >= pedPool->m_count || scriptEntityPool->full())
+			break;
+
+		auto current = pedPool->m_pData + i * pedPool->m_itemSize;
+
+		if (!pedPool->isValid(i) || !current)
+			continue;
+
+		array[index++] = getScriptHandleFn(current);
+	}
+
+	return index;
 }
 
 int DLL_EXPORT worldGetAllObjects(int* array, int arraySize)
 {
-	LOG_WARNING("plugin is trying to use worldGetAllObjects");
-	return 0;
+	auto objectPool = (fwGenericPool*)objectPoolAddressArr[gameVersion];
+	auto scriptEntityPool = (fwPool<fwScriptGuid>*)entityPoolAddressArr[gameVersion];
+	auto getScriptHandleFn = (int32_t(*)(LPVOID))getEntityScrHandleAddressArr[gameVersion];
+
+	if (objectPool->m_count <= 0)
+		return 0;
+
+	int index = 0;
+
+	for (auto i = 0; i < objectPool->m_count; i++)
+	{
+		if (i >= arraySize || i >= objectPool->m_count || scriptEntityPool->full())
+			break;
+
+		auto current = objectPool->m_pData + i * objectPool->m_itemSize;
+
+		if (!objectPool->isValid(i) || !current)
+			continue;
+
+		array[index++] = getScriptHandleFn(current);
+	}
+
+	return index;
+}
+
+int DLL_EXPORT worldGetAllPickups(int* array, int arraySize)
+{
+	auto pickupPool = (fwGenericPool*)pickupPoolAddressArr[gameVersion];
+	auto scriptEntityPool = (fwPool<fwScriptGuid>*)entityPoolAddressArr[gameVersion];
+	auto getScriptHandleFn = (int32_t(*)(LPVOID))getEntityScrHandleAddressArr[gameVersion];
+
+	if (pickupPool->m_count <= 0)
+		return 0;
+
+	int index = 0;
+
+	for (auto i = 0; i < pickupPool->m_count; i++)
+	{
+		if (i >= arraySize || i >= pickupPool->m_count || scriptEntityPool->full())
+			break;
+
+		auto current = pickupPool->m_pData + i * pickupPool->m_itemSize;
+
+		if (!pickupPool->isValid(i) || !current)
+			continue;
+
+		array[index++] = getScriptHandleFn(current);
+	}
+
+	return index;
 }
 
 DLL_EXPORT int createTexture(const char* fileName)
-{
-	return 0;
+{	
 	LOG_WARNING("plugin is trying to use createTexture");
+	return 0;
 }
 
 DLL_EXPORT void drawTexture(int id, int index, int level, int time,
@@ -310,12 +361,5 @@ DLL_EXPORT void drawTexture(int id, int index, int level, int time,
 	float r, float g, float b, float a)
 {
 	LOG_WARNING("plugin is trying to use drawTexture");
-	return;
-}
-
-DLL_EXPORT int getScriptHandleBaseAddress(int addr)
-{
-	LOG_WARNING("plugin is trying to use getScriptHandleBaseAddress");
-	return 0;
 }
 

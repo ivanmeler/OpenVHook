@@ -35,6 +35,9 @@
     <ClCompile Include="Utility\PEImage.cpp">
       <Filter>Utility\PE Image</Filter>
     </ClCompile>
+    <ClCompile Include="Thread.cpp">
+      <Filter>Utility\Thread</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Input">
@@ -78,6 +81,9 @@
     </Filter>
     <Filter Include="SDK">
       <UniqueIdentifier>{ffd36cce-41fd-43b5-b289-9c6253165e81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility\Thread">
+      <UniqueIdentifier>{fa7afa1b-3204-4b35-9f15-1b879591e07e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -132,6 +138,15 @@
     </ClInclude>
     <ClInclude Include="..\SDK\inc\types.h">
       <Filter>SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="Types.h">
+      <Filter>Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Addresses.h">
+      <Filter>Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Thread.h">
+      <Filter>Utility\Thread</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
