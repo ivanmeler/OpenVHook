@@ -78,7 +78,7 @@ public:
 
 namespace ScriptManager {
 
-	void					WndProc( HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+	void					HandleKeyEvent(DWORD key, WORD repeats, BYTE scanCode, BOOL isExtended, BOOL isWithAlt, BOOL wasDownBefore, BOOL isUpNow);
 }
 
 extern ScriptManagerThread	g_ScriptManagerThread;

@@ -91,6 +91,7 @@
     <ClCompile Include="Scripting\ScriptEngine.cpp" />
     <ClCompile Include="Scripting\ScriptManager.cpp" />
     <ClCompile Include="Scripting\ScriptThread.cpp" />
+    <ClCompile Include="Thread.cpp" />
     <ClCompile Include="Utility\Console.cpp" />
     <ClCompile Include="Utility\General.cpp" />
     <ClCompile Include="Utility\Log.cpp" />
@@ -102,6 +103,7 @@
     <ClInclude Include="..\SDK\inc\nativeCaller.h" />
     <ClInclude Include="..\SDK\inc\natives.h" />
     <ClInclude Include="..\SDK\inc\types.h" />
+    <ClInclude Include="Addresses.h" />
     <ClInclude Include="ASI Loader\ASILoader.h" />
     <ClInclude Include="Input\InputHook.h" />
     <ClInclude Include="OpenVHook.h" />
@@ -111,6 +113,8 @@
     <ClInclude Include="Scripting\ScriptEngine.h" />
     <ClInclude Include="Scripting\ScriptManager.h" />
     <ClInclude Include="Scripting\ScriptThread.h" />
+    <ClInclude Include="Thread.h" />
+    <ClInclude Include="Types.h" />
     <ClInclude Include="Utility\Console.h" />
     <ClInclude Include="Utility\General.h" />
     <ClInclude Include="Utility\Log.h" />
