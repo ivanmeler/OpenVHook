@@ -43,26 +43,68 @@ bool ScriptEngine::Initialize() {
 	executable_meta executable;
 	executable.EnsureInit();
 
-	scrThreadCollection = reinterpret_cast<decltype(scrThreadCollection)>(0x142BD01B0);
+	auto scrThreadCollectionPattern = pattern("48 8B C8 EB 03 48 8B CB 48 8B 05");
+
+	char * location = scrThreadCollectionPattern.count(1).get(0).get<char>(11);
+	if (location == nullptr) {
+
+		LOG_ERROR("Unable to find scrThreadCollection");
+		return false;
+	}
+	scrThreadCollection = reinterpret_cast<decltype(scrThreadCollection)>(location + *(int32_t*)location + 4);
 	LOG_DEBUG("scrThreadCollection\t 0x%p (0x%.8X)", scrThreadCollection, reinterpret_cast<uintptr_t>(scrThreadCollection) - executable.begin());
 
 	activeThreadTlsOffset = 0x830;
 	LOG_DEBUG("activeThreadTlsOffset 0x%.8X", activeThreadTlsOffset);
 
-	scrThreadId = reinterpret_cast<decltype(scrThreadId)>(0x142BCFB10);
+	auto scrThreadIdPattern = pattern("89 15 ? ? ? ? 48 8B 0C D8");
+
+	location = scrThreadIdPattern.count(1).get(0).get<char>(2);
+	if (location == nullptr) {
+
+		LOG_ERROR("Unable to find scrThreadId");
+		return false;
+	}
+	scrThreadId = reinterpret_cast<decltype(scrThreadId)>(location + *(int32_t*)location + 4);
 	LOG_DEBUG("scrThreadId\t\t 0x%p (0x%.8X)", scrThreadId, reinterpret_cast<uintptr_t>(scrThreadId) - executable.begin());
 
-	scrThreadCount = reinterpret_cast<decltype(scrThreadCount)>(0x142BD04F0);
+	auto scrThreadCountPattern = pattern("FF 0D ? ? ? ? 48 8B F9");
+
+	location = scrThreadCountPattern.get(0).get<char>(2);
+	if (location == nullptr) {
+
+		LOG_ERROR("Unable to find scrThreadCount");
+		return false;
+	}
+	scrThreadCount = reinterpret_cast<decltype(scrThreadCount)>(location + *(int32_t*)location + 4);
 	LOG_DEBUG("scrThreadCount\t 0x%p (0x%.8X)", scrThreadCount, reinterpret_cast<uintptr_t>(scrThreadCount) - executable.begin());
 
-	registrationTable = reinterpret_cast<decltype(registrationTable)>(0x142BCF2F0);
+	auto registrationTablePattern = pattern("76 61 49 8B 7A 40 48 8D 0D");
+
+	location = registrationTablePattern.count(1).get(0).get<char>(9);
+	if (location == nullptr) {
+
+		LOG_ERROR("Unable to find registrationTable");
+		return false;
+	}
+	registrationTable = reinterpret_cast<decltype(registrationTable)>(location + *(int32_t*)location + 4);
 	LOG_DEBUG("registrationTable\t 0x%p (0x%.8X)", registrationTable, reinterpret_cast<uintptr_t>(registrationTable) - executable.begin());
 
-	g_scriptHandlerMgr = reinterpret_cast<decltype(g_scriptHandlerMgr)>(0x142451460);
+	auto g_scriptHandlerMgrPattern = pattern("74 17 48 8B C8 E8 ? ? ? ? 48 8D 0D");
+
+	location = g_scriptHandlerMgrPattern.count(1).get(0).get<char>(13);
+	if (location == nullptr) {
+
+		LOG_ERROR("Unable to find g_scriptHandlerMgr");
+		return false;
+	}
+	g_scriptHandlerMgr = reinterpret_cast<decltype(g_scriptHandlerMgr)>(location + *(int32_t*)location + 4);
 	LOG_DEBUG("g_scriptHandlerMgr\t 0x%p (0x%.8X)", g_scriptHandlerMgr, reinterpret_cast<uintptr_t>(g_scriptHandlerMgr) - executable.begin());
 
 	//script_location
-	void * script_location = (void*)0x1414F3192;
+	auto getScriptIdBlock = pattern("80 78 32 00 75 34 B1 01 E8");
+	void * script_location = getScriptIdBlock.count(1).get(0).get<void>(4);
+
 	if (script_location == nullptr) {
 
 		LOG_ERROR("Unable to find getScriptIdBlock");
@@ -76,10 +118,27 @@ bool ScriptEngine::Initialize() {
 	memcpy(&block, script_location, 2);
 	VirtualProtect(script_location, 2, OldProtection, NULL);
 
-	gameState = reinterpret_cast<decltype(gameState)>(0x141F8B130);
+	auto gameStatePattern =				pattern("83 3D ? ? ? ? ? 8A D9 74 0A");
+
+	location = gameStatePattern.count(1).get(0).get<char>(2);
+	if (location == nullptr) {
+
+		LOG_ERROR("Unable to find gameState");
+		return false;
+	}
+	gameState = reinterpret_cast<decltype(gameState)>(location + *(int32_t*)location + 5);
 	LOG_DEBUG("gameState\t\t 0x%p (0x%.8X)", gameState, reinterpret_cast<uintptr_t>(gameState) - executable.begin());
 
-	globalTable.GlobalBasePtr = (__int64**)0x142BD02F0;
+	auto g_globalPtrPattern = pattern("4C 8D 05 ? ? ? ? 4D 8B 08 4D 85 C9 74 11");
+
+	location = g_globalPtrPattern.count(1).get(0).get<char>(0);
+	if (location == nullptr) {
+
+		LOG_ERROR("Unable to find g_globalPtr");
+		return false;
+	}
+	//g_globalPtr = reinterpret_cast<decltype(g_globalPtr)>(location + *(int32_t*)(location + 3) + 7);
+	globalTable.GlobalBasePtr = (__int64**)(location + *(int*)(location + 3) + 7);
 	LOG_DEBUG("g_globalPtr\t\t 0x%p (0x%.8X)", globalTable.GlobalBasePtr, reinterpret_cast<uintptr_t>(globalTable.GlobalBasePtr) - executable.begin());
 
 	gameVersion = GetGameVersion();
@@ -340,7 +399,6 @@ eGameState ScriptEngine::GetGameState() {
 int ScriptEngine::GetGameVersion()
 {
 	auto codeSig = *(DWORD*)0x140870000;
-
 	switch (codeSig)
 	{
 	case 0xE8012024:
