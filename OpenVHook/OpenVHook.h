@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <memory>
 #include <fstream>
+#include <mutex>
 
 #include <unordered_map>
 #include <unordered_set>

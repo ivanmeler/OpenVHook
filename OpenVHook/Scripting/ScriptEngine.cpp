@@ -87,7 +87,7 @@ bool ScriptEngine::Initialize() {
 
 	// Check if game is ready
 	LOG_PRINT("Checking if game is ready...");
-	while (!GetGameState() == GameStatePlaying) {
+	while (!scrThreadCollection->begin()) {
 		Sleep(100);
 	}
 	LOG_PRINT("Game ready");
@@ -219,7 +219,7 @@ bool ScriptEngine::Initialize() {
 
 	// Check if game is ready
 	LOG_PRINT("Checking if game is ready...");
-	while (!GetGameState() == GameStatePlaying ) {		
+	while (!scrThreadCollection->begin()) {
 		Sleep(100);
 	}
 	LOG_PRINT("Game ready");
