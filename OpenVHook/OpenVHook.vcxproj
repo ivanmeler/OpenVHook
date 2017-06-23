@@ -114,7 +114,7 @@
     <ClInclude Include="Scripting\ScriptManager.h" />
     <ClInclude Include="Scripting\ScriptThread.h" />
     <ClInclude Include="Utility\Thread.h" />
-    <ClInclude Include="Types.h" />
+    <ClInclude Include="Scripting\Types.h" />
     <ClInclude Include="Utility\Console.h" />
     <ClInclude Include="Utility\General.h" />
     <ClInclude Include="Utility\Log.h" />

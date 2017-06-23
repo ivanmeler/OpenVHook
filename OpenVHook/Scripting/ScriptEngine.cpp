@@ -398,7 +398,10 @@ eGameState ScriptEngine::GetGameState() {
 
 int ScriptEngine::GetGameVersion()
 {
-	auto codeSig = *(DWORD*)0x140870000;
+	LPVOID pModule = GetModuleHandleA(NULL);
+
+	DWORD codeSig = *(DWORD*)((DWORD64)pModule + 0x870000);
+
 	switch (codeSig)
 	{
 	case 0xE8012024:
@@ -461,4 +464,3 @@ int ScriptEngine::GetGameVersion()
 		return -1;
 	}
 }
-

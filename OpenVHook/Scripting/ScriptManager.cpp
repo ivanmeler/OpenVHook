@@ -43,12 +43,12 @@ void Script::Tick() {
 		scriptFiber = CreateFiber(NULL, [](LPVOID handler) {
 			__try {
 
-				reinterpret_cast<Script*>(handler)->Run();
+				reinterpret_cast<Script*>( handler )->Run();
 			} __except (EXCEPTION_EXECUTE_HANDLER) {
 
 				LOG_ERROR("Error in script->Run");
 			}
-		}, this);
+		}, this );
 	}
 }
 
@@ -231,15 +231,19 @@ DLL_EXPORT uint64_t* getGlobalPtr(int index)
 
 BYTE DLL_EXPORT *getScriptHandleBaseAddress(int handle)
 {
-	auto scriptEntityPool = *(fwPool<fwScriptGuid>**)entityPoolAddressArr[gameVersion];
+	if (handle != -1)
+	{
+		auto scriptEntityPool = *(fwPool<fwScriptGuid>**)entityPoolAddressArr[gameVersion];
 
-	int index = handle >> 8;
+		int index = handle >> 8;
 
-	if (index > scriptEntityPool->m_count || !scriptEntityPool->isValid(index)) return NULL;
+		if (index < scriptEntityPool->m_count && scriptEntityPool->m_bitMap[index] == (handle & 0xFF))
+		{
+			return (BYTE*)scriptEntityPool->get(index)->m_pEntity;
+		}
+	}
 
-	auto * poolObj = scriptEntityPool->m_pData + index * scriptEntityPool->m_itemSize;
-
-	return poolObj ? reinterpret_cast<BYTE*>(poolObj->m_pEntity) : NULL;
+	return NULL;
 }
 
 int DLL_EXPORT worldGetAllVehicles(int* array, int arraySize)

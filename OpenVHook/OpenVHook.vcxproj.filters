@@ -142,9 +142,11 @@
     <ClInclude Include="Addresses.h">
       <Filter>Scripting</Filter>
     </ClInclude>
-    <ClInclude Include="Types.h" />
     <ClInclude Include="Utility\Thread.h">
       <Filter>Utility\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripting\Types.h">
+      <Filter>Scripting</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

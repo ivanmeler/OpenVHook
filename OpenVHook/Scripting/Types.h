@@ -25,6 +25,11 @@ public:
 		return ~(m_bitMap[index] >> 7) & 1;
 	}
 
+	T * get(int32_t index)
+	{
+		return m_pData + index * m_itemSize;
+	}
+
 	T ** begin() {
 		return m_pData;
 	}
