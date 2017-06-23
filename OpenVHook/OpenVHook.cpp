@@ -5,7 +5,7 @@
 #include "Utility\Console.h"
 #include "Utility\General.h"
 #include "Utility\Pattern.h"
-#include "Thread.h"
+#include "Utility\Thread.h"
 
 using namespace Utility;
 

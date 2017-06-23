@@ -1,6 +1,6 @@
 #pragma once
 
-#include "OpenVHook.h"
+#include "..\OpenVHook.h"
 
 typedef LPVOID ThreadParameter;
 

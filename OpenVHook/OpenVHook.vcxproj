@@ -91,7 +91,7 @@
     <ClCompile Include="Scripting\ScriptEngine.cpp" />
     <ClCompile Include="Scripting\ScriptManager.cpp" />
     <ClCompile Include="Scripting\ScriptThread.cpp" />
-    <ClCompile Include="Thread.cpp" />
+    <ClCompile Include="Utility\Thread.cpp" />
     <ClCompile Include="Utility\Console.cpp" />
     <ClCompile Include="Utility\General.cpp" />
     <ClCompile Include="Utility\Log.cpp" />
@@ -113,7 +113,7 @@
     <ClInclude Include="Scripting\ScriptEngine.h" />
     <ClInclude Include="Scripting\ScriptManager.h" />
     <ClInclude Include="Scripting\ScriptThread.h" />
-    <ClInclude Include="Thread.h" />
+    <ClInclude Include="Utility\Thread.h" />
     <ClInclude Include="Types.h" />
     <ClInclude Include="Utility\Console.h" />
     <ClInclude Include="Utility\General.h" />
