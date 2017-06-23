@@ -3,8 +3,7 @@
 #include "..\Utility\Log.h"
 #include "..\Utility\General.h"
 #include "..\Addresses.h"
-#include "../Types.h"
-#include <mutex>
+#include "Types.h"
 
 using namespace Utility;
 
@@ -35,19 +34,21 @@ void Script::Tick() {
 		currentScript = this;
 		SwitchToFiber( scriptFiber );
 		currentScript = nullptr;
-	} else {
+	}
 
-		scriptFiber = CreateFiber( NULL, []( LPVOID handler ) {
+	else if (ScriptEngine::GetGameState() == GameStatePlaying) {
 
+		LOG_PRINT("Launching main()");
+
+		scriptFiber = CreateFiber(NULL, [](LPVOID handler) {
 			__try {
 
-				reinterpret_cast<Script*>( handler )->Run();
+				reinterpret_cast<Script*>(handler)->Run();
+			} __except (EXCEPTION_EXECUTE_HANDLER) {
 
-			} __except ( EXCEPTION_EXECUTE_HANDLER ) {	
-
-				LOG_ERROR( "Error in script->Run" );
+				LOG_ERROR("Error in script->Run");
 			}
-		}, this );
+		}, this);
 	}
 }
 

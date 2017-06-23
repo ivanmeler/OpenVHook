@@ -35,7 +35,7 @@
     <ClCompile Include="Utility\PEImage.cpp">
       <Filter>Utility\PE Image</Filter>
     </ClCompile>
-    <ClCompile Include="Thread.cpp">
+    <ClCompile Include="Utility\Thread.cpp">
       <Filter>Utility\Thread</Filter>
     </ClCompile>
   </ItemGroup>
@@ -139,13 +139,13 @@
     <ClInclude Include="..\SDK\inc\types.h">
       <Filter>SDK</Filter>
     </ClInclude>
-    <ClInclude Include="Types.h">
-      <Filter>Scripting</Filter>
-    </ClInclude>
     <ClInclude Include="Addresses.h">
       <Filter>Scripting</Filter>
     </ClInclude>
-    <ClInclude Include="Thread.h">
+    <ClInclude Include="Scripting\Types.h">
+      <Filter>Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\Thread.h">
       <Filter>Utility\Thread</Filter>
     </ClInclude>
   </ItemGroup>

@@ -65,7 +65,7 @@ static Thread initThread = Thread([](ThreadState* ts) {
 
 	ASILoader::Initialize();
 
-	ASILoader::LoadPlugins();
+	//ASILoader::LoadPlugins();
 
 	LOG_PRINT( "Initialization finished" );
 
