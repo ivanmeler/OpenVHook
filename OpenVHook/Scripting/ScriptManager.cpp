@@ -53,6 +53,7 @@ void Script::Tick() {
 }
 
 void Script::Run() {
+
 	callbackFunction();
 }
 
@@ -264,126 +265,96 @@ DLL_EXPORT uint64_t* getGlobalPtr(int index)
 	return (uint64_t*)globalTable.AddressOf(index);
 }
 
-BYTE DLL_EXPORT *getScriptHandleBaseAddress(int handle)
-{
+BYTE DLL_EXPORT *getScriptHandleBaseAddress(int handle) {
+
 	if (handle != -1)
 	{
-		auto scriptEntityPool = *(fwPool<fwScriptGuid>**)entityPoolAddressArr[gameVersion];
-
 		int index = handle >> 8;
 
-		if (index < scriptEntityPool->m_count && scriptEntityPool->m_bitMap[index] == (handle & 0xFF))
+		auto entityPool = pools.GetEntityPool();
+
+		if (index < entityPool->m_count && entityPool->m_bitMap[index] == (handle & 0xFF))
 		{
-			return (BYTE*)scriptEntityPool->get(index)->m_pEntity;
+			auto result = entityPool->m_pData[index];
+
+			return (BYTE*)result.m_pEntity;
 		}
 	}
 
 	return NULL;
 }
 
-int DLL_EXPORT worldGetAllVehicles(int* array, int arraySize)
-{
-	auto vehiclePool = **(VehiclePool***)vehiclePoolAddressArr[gameVersion];
-	auto scriptEntityPool = *(fwPool<fwScriptGuid>**)entityPoolAddressArr[gameVersion];
-	auto getScriptHandleFn = (int32_t(*)(LPVOID))getEntityScrHandleAddressArr[gameVersion];
-
-	if (vehiclePool->m_count <= 0)
-		return 0;
+int DLL_EXPORT worldGetAllVehicles(int* array, int arraySize) {
 
 	int index = 0;
+
+	auto vehiclePool = pools.GetVehiclePool();
 
 	for (auto i = 0; i < vehiclePool->m_count; i++)
 	{
-		if (i >= arraySize || i >= vehiclePool->m_count || scriptEntityPool->full())
-			break;
+		if (i >= arraySize) break;
 
-		auto address = vehiclePool->getAddress(i);
-
-		if (!vehiclePool->isValid(i) || !address)
-			continue;
-
-		array[index++] = getScriptHandleFn(address);
+		if (vehiclePool->m_bitMap[i] >= 0)
+		{
+			array[index++] = (i << 8) + vehiclePool->m_bitMap[i];
+		}
 	}
 
 	return index;
 }
 
-int DLL_EXPORT worldGetAllPeds(int* array, int arraySize)
-{
-	auto pedPool = *(fwGenericPool**)pedPoolAddressArr[gameVersion];
-	auto scriptEntityPool = *(fwPool<fwScriptGuid>**)entityPoolAddressArr[gameVersion];
-	auto getScriptHandleFn = (int32_t(*)(LPVOID))getEntityScrHandleAddressArr[gameVersion];
-
-	if (pedPool->m_count <= 0)
-		return 0;
+int DLL_EXPORT worldGetAllPeds(int* array, int arraySize) {
 
 	int index = 0;
+
+	auto pedPool = pools.GetPedPool();
 
 	for (auto i = 0; i < pedPool->m_count; i++)
 	{
-		if (i >= arraySize || i >= pedPool->m_count || scriptEntityPool->full())
-			break;
+		if (i >= arraySize) break;
 
-		auto current = pedPool->m_pData + i * pedPool->m_itemSize;
-
-		if (!pedPool->isValid(i) || !current)
-			continue;
-
-		array[index++] = getScriptHandleFn(current);
+		if (pedPool->m_bitMap[i] >= 0)
+		{
+			array[index++] = pedPool->getHandle(i);
+		}
 	}
 
 	return index;
 }
 
-int DLL_EXPORT worldGetAllObjects(int* array, int arraySize)
-{
-	auto objectPool = (fwGenericPool*)objectPoolAddressArr[gameVersion];
-	auto scriptEntityPool = (fwPool<fwScriptGuid>*)entityPoolAddressArr[gameVersion];
-	auto getScriptHandleFn = (int32_t(*)(LPVOID))getEntityScrHandleAddressArr[gameVersion];
-
-	if (objectPool->m_count <= 0)
-		return 0;
+int DLL_EXPORT worldGetAllObjects(int* array, int arraySize) {
 
 	int index = 0;
+
+	auto objectPool = pools.GetObjectsPool();
 
 	for (auto i = 0; i < objectPool->m_count; i++)
 	{
-		if (i >= arraySize || i >= objectPool->m_count || scriptEntityPool->full())
-			break;
+		if (i >= arraySize) break;
 
-		auto current = objectPool->m_pData + i * objectPool->m_itemSize;
-
-		if (!objectPool->isValid(i) || !current)
-			continue;
-
-		array[index++] = getScriptHandleFn(current);
+		if (objectPool->m_bitMap[i] >= 0)
+		{
+			array[index++] = objectPool->getHandle(i);
+		}
 	}
 
 	return index;
 }
 
-int DLL_EXPORT worldGetAllPickups(int* array, int arraySize)
-{
-	auto pickupPool = (fwGenericPool*)pickupPoolAddressArr[gameVersion];
-	auto scriptEntityPool = (fwPool<fwScriptGuid>*)entityPoolAddressArr[gameVersion];
-	auto getScriptHandleFn = (int32_t(*)(LPVOID))getEntityScrHandleAddressArr[gameVersion];
-
-	if (pickupPool->m_count <= 0)
-		return 0;
+int DLL_EXPORT worldGetAllPickups(int* array, int arraySize) {
 
 	int index = 0;
 
+	auto pickupPool = pools.GetPickupsPool();
+
 	for (auto i = 0; i < pickupPool->m_count; i++)
 	{
-		if (i >= arraySize || i >= pickupPool->m_count || scriptEntityPool->full())
-			break;
+		if (i >= arraySize) break;
 
-		auto current = pickupPool->m_pData + i * pickupPool->m_itemSize;
-
-		if (!pickupPool->isValid(i) || !current)
-			continue;
-
-		array[index++] = getScriptHandleFn(current);
+		if (pickupPool->m_bitMap[i] >= 0)
+		{
+			array[index++] = pickupPool->getHandle(i);
+		}
 	}
 
 	return index;

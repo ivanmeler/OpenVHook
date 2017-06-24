@@ -1,12 +1,9 @@
 #include "ScriptEngine.h"
 #include "NativeHashMap.h"
-#include "NativeInvoker.h"
 #include "..\Utility\Pattern.h"
 #include "..\Utility\Log.h"
 
 using namespace Utility;
-
-GlobalTable globalTable;
 
 static pgPtrCollection<ScriptThread> * scrThreadCollection;
 static uint32_t activeThreadTlsOffset;
@@ -18,7 +15,9 @@ static scriptHandlerMgr * g_scriptHandlerMgr;
 
 int gameVersion;
 
-//uint64_t * g_globalPtr;
+GlobalTable globalTable;
+
+CPools pools;
 
 struct NativeRegistration {
 
@@ -143,6 +142,9 @@ bool ScriptEngine::Initialize() {
 
 	gameVersion = GetGameVersion();
 	LOG_PRINT("Game version #%i", gameVersion);
+
+	// Initialize internal pools
+	pools.Initialize();
 
 	// Check if game is ready
 	LOG_PRINT("Checking if game is ready...");

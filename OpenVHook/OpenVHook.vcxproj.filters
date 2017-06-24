@@ -38,6 +38,9 @@
     <ClCompile Include="Utility\Thread.cpp">
       <Filter>Utility\Thread</Filter>
     </ClCompile>
+    <ClCompile Include="Scripting\Pools.cpp">
+      <Filter>Scripting\Pools</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Input">
@@ -84,6 +87,9 @@
     </Filter>
     <Filter Include="Utility\Thread">
       <UniqueIdentifier>{fa7afa1b-3204-4b35-9f15-1b879591e07e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scripting\Pools">
+      <UniqueIdentifier>{35981836-3de3-4b64-82c5-daa0cc5cfd2d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -139,14 +145,14 @@
     <ClInclude Include="..\SDK\inc\types.h">
       <Filter>SDK</Filter>
     </ClInclude>
-    <ClInclude Include="Addresses.h">
-      <Filter>Scripting</Filter>
-    </ClInclude>
     <ClInclude Include="Utility\Thread.h">
       <Filter>Utility\Thread</Filter>
     </ClInclude>
     <ClInclude Include="Scripting\Types.h">
       <Filter>Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripting\Pools.h">
+      <Filter>Scripting\Pools</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

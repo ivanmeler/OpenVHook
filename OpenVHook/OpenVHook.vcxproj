@@ -88,6 +88,7 @@
     <ClCompile Include="OpenVHook.cpp" />
     <ClCompile Include="Input\InputHook.cpp" />
     <ClCompile Include="Scripting\NativeInvoker.cpp" />
+    <ClCompile Include="Scripting\Pools.cpp" />
     <ClCompile Include="Scripting\ScriptEngine.cpp" />
     <ClCompile Include="Scripting\ScriptManager.cpp" />
     <ClCompile Include="Scripting\ScriptThread.cpp" />
@@ -103,7 +104,7 @@
     <ClInclude Include="..\SDK\inc\nativeCaller.h" />
     <ClInclude Include="..\SDK\inc\natives.h" />
     <ClInclude Include="..\SDK\inc\types.h" />
-    <ClInclude Include="Addresses.h" />
+    <ClInclude Include="Scripting\Pools.h" />
     <ClInclude Include="ASI Loader\ASILoader.h" />
     <ClInclude Include="Input\InputHook.h" />
     <ClInclude Include="OpenVHook.h" />

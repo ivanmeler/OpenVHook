@@ -6,6 +6,7 @@
 #include "ScriptThread.h"
 #include "pgCollection.h"
 #include "NativeInvoker.h"
+#include "Pools.h"
 
 struct GlobalTable
 {
@@ -15,7 +16,9 @@ struct GlobalTable
 };
 
 extern GlobalTable globalTable;
-//extern uint64_t * g_globalPtr;
+
+extern CPools pools;
+
 extern int gameVersion;
 
 enum eGameState {

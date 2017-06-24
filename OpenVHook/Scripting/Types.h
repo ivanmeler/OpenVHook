@@ -25,6 +25,11 @@ public:
 		return ~(m_bitMap[index] >> 7) & 1;
 	}
 
+	int32_t getHandle(int32_t index) const
+	{
+		return (index << 8) + m_bitMap[index];
+	}
+
 	T * get(int32_t index)
 	{
 		return m_pData + index * m_itemSize;
@@ -64,9 +69,8 @@ public:
 	}
 };
 
-class fwScriptGuid
+struct EntityRef
 {
-public:
-	virtual ~fwScriptGuid() = 0;
+	char pad[0x8];
 	void * m_pEntity;
 };
