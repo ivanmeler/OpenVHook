@@ -3,15 +3,9 @@
 
 #include "..\OpenVHook.h"
 
-class ASILoader {
-public:
-	static void Initialize();
+namespace ASILoader {
 
-	static void LoadPlugins();
-
-	static void UnloadPlugins();
-
-	static bool Loaded();
+	void				Initialize();
 };
 
 #endif // __ASI_LOADER_H__

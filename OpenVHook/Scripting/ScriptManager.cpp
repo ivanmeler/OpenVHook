@@ -2,7 +2,6 @@
 #include "ScriptEngine.h"
 #include "..\Utility\Log.h"
 #include "..\Utility\General.h"
-#include "..\Addresses.h"
 #include "Types.h"
 
 using namespace Utility;
@@ -137,8 +136,8 @@ void ScriptManagerThread::AddScript( HMODULE module, void( *fn )( ) ) {
 		return;
 	}
 
-	if (find(m_scriptNames.begin(), m_scriptNames.end(), 
-		moduleName) == m_scriptNames.end())
+	if ( find(m_scriptNames.begin(), m_scriptNames.end(), 
+		moduleName) == m_scriptNames.end() )
 	{
 		m_scriptNames.push_back( moduleName );
 	}

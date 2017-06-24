@@ -61,9 +61,9 @@ static Thread initThread = Thread([](ThreadState* ts) {
 
 	ScriptEngine::CreateThread( &g_ScriptManagerThread );
 
+#ifdef _DEBUG
 	ASILoader::Initialize();
-
-	//ASILoader::LoadPlugins();
+#endif
 
 	LOG_PRINT( "Initialization finished" );
 
