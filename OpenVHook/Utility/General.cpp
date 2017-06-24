@@ -36,14 +36,16 @@ std::string Utility::GetOurModuleFolder() {
 	return currentPath.substr( 0, currentPath.find_last_of( "\\" ) );
 }
 
-std::string Utility::GetModuleName(const HMODULE module) {
+std::string Utility::GetModuleFullName(const HMODULE module) {
 
 	char fileName[MAX_PATH];
 	GetModuleFileNameA(module, fileName, MAX_PATH);
+	return fileName;
+}
 
-	std::string fullPath = fileName;
+std::string Utility::GetModuleName(const HMODULE module) {
 
-	return GetFilename(fullPath);
+	return GetFilename(GetModuleFullName(module));
 }
 
 std::string Utility::GetModuleNameWithoutExtension( const HMODULE module ) {

@@ -17,7 +17,7 @@ public:
 		m_nDataCount = 0;
 	}
 
-	inline void* GetResultPointer() {
+	void* GetResultPointer() {
 
 		return m_pReturn;
 	}
@@ -28,14 +28,14 @@ public:
 class Script {
 public:
 
-	inline Script( void( *function )( ) ) {
+	Script( void( *function )( ) ) {
 
 		scriptFiber = nullptr;
 		callbackFunction = function;
 		wakteAt = timeGetTime();
 	}
 
-	inline ~Script() {
+	~Script() {
 
 		if ( scriptFiber ) {
 			DeleteFiber( scriptFiber );
@@ -46,10 +46,12 @@ public:
 
 	void Yield( uint32_t time );
 
-	inline void( *GetCallbackFunction() )( ) {
+	void( *GetCallbackFunction() )( ) {
 
 		return callbackFunction;
 	}
+
+	std::string		fileName;
 
 private:
 
@@ -66,11 +68,14 @@ class ScriptManagerThread : public ScriptThread {
 private:
 
 	scriptMap				m_scripts;
+	std::vector<std::string>	m_scriptNames;
 
 public:
 
-	virtual void			DoRun() override;
-	virtual eThreadState	Reset( uint32_t scriptHash, void * pArgs, uint32_t argCount ) override;
+	void			DoRun() override;
+	eThreadState	Reset( uint32_t scriptHash, void * pArgs, uint32_t argCount ) override;
+	bool					LoadScripts();
+	void					FreeScripts();
 	void					AddScript( HMODULE module, void( *fn )( ) );
 	void					RemoveScript( void( *fn )( ) );
 	void					RemoveScript( HMODULE module );

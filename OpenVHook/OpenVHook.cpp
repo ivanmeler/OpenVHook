@@ -16,19 +16,8 @@ static Thread mainThread = Thread([](ThreadState*) {
 	{
 		keyboardState[0x52].lastUpTime = 0;
 
-		if (ASILoader::Loaded())
+		if (g_ScriptManagerThread.LoadScripts())
 		{
-			LOG_PRINT("Unloading .asi plugins...");
-
-			ASILoader::UnloadPlugins();
-
-			MessageBeep(0);
-		}
-
-		else
-		{
-			ASILoader::LoadPlugins();
-
 			int count = 3;
 			while (count > 0)
 			{
@@ -36,6 +25,15 @@ static Thread mainThread = Thread([](ThreadState*) {
 				Sleep(200);
 				--count;
 			}
+		}
+
+		else
+		{
+			LOG_PRINT("Unloading .asi plugins...");
+
+			g_ScriptManagerThread.FreeScripts();
+
+			MessageBeep(0);
 		}
 	}
 });

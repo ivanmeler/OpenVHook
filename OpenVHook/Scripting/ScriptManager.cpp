@@ -93,18 +93,53 @@ eThreadState ScriptManagerThread::Reset( uint32_t scriptHash, void * pArgs, uint
 	return ScriptThread::Reset( scriptHash, pArgs, argCount );
 }
 
+bool ScriptManagerThread::LoadScripts() {
+
+	if (!m_scripts.empty()) return false;
+
+	for (auto && scriptName : m_scriptNames)
+	{
+		LoadLibraryA( scriptName.c_str() );
+	}
+
+	return true;
+}
+
+void ScriptManagerThread::FreeScripts() {
+
+	scriptMap tempScripts;
+
+	for (auto && pair : m_scripts) {
+		tempScripts[pair.first] = pair.second;
+	}
+
+	for (auto && pair : tempScripts) {
+
+		FreeLibrary( pair.first );
+	}
+
+	m_scripts.clear();
+}
+
 void ScriptManagerThread::AddScript( HMODULE module, void( *fn )( ) ) {
 
-	const std::string moduleName = GetModuleNameWithoutExtension( module );
+	const std::string moduleName = GetModuleFullName( module );
+	const std::string shortName = GetFilename(moduleName);
 
-	LOG_PRINT( "Registering script '%s' (0x%p)", moduleName.c_str(), fn );
+	LOG_PRINT( "Registering script '%s' (0x%p)", shortName.c_str(), fn );
 
 	std::unique_lock<std::mutex> lock(mutex);
 
 	if ( m_scripts.find( module ) != m_scripts.end() ) {
 
-		LOG_ERROR( "Script '%s' is already registered", moduleName.c_str() );
+		LOG_ERROR( "Script '%s' is already registered", shortName.c_str() );
 		return;
+	}
+
+	if (find(m_scriptNames.begin(), m_scriptNames.end(), 
+		moduleName) == m_scriptNames.end())
+	{
+		m_scriptNames.push_back( moduleName );
 	}
 
 	m_scripts[module] = std::make_shared<Script>( fn );
