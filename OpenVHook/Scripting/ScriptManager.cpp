@@ -128,8 +128,6 @@ void ScriptManagerThread::AddScript( HMODULE module, void( *fn )( ) ) {
 
 	LOG_PRINT( "Registering script '%s' (0x%p)", shortName.c_str(), fn );
 
-	std::unique_lock<std::mutex> lock(mutex);
-
 	if ( m_scripts.find( module ) != m_scripts.end() ) {
 
 		LOG_ERROR( "Script '%s' is already registered", shortName.c_str() );
