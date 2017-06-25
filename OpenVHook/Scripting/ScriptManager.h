@@ -51,8 +51,6 @@ public:
 		return callbackFunction;
 	}
 
-	std::string		fileName;
-
 private:
 
 	HANDLE			scriptFiber;
@@ -62,12 +60,12 @@ private:
 	void			Run();
 };
 
-typedef std::map<HMODULE,std::shared_ptr<Script>> scriptMap;
+typedef std::map<HMODULE,std::vector<std::shared_ptr<Script>>> scriptMap;
 
 class ScriptManagerThread : public ScriptThread {
 private:
 
-	scriptMap				m_scripts;
+	scriptMap					m_scripts;
 	std::vector<std::string>	m_scriptNames;
 
 public:

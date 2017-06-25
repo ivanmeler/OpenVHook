@@ -24,7 +24,7 @@ void Script::Tick() {
 		mainFiber = ConvertThreadToFiber( nullptr );
 	}
 
-	if ( timeGetTime() < wakteAt ) {
+	if ( timeGetTime() < wakteAt) {
 		return;
 	}
 
@@ -69,7 +69,9 @@ void ScriptManagerThread::DoRun() {
 	scriptMap thisIterScripts( m_scripts );
 
 	for ( auto & pair : thisIterScripts ) {
-		pair.second->Tick();
+		for ( auto & script : pair.second ) {
+			script->Tick();
+		}	
 	}
 }
 
@@ -87,7 +89,9 @@ eThreadState ScriptManagerThread::Reset( uint32_t scriptHash, void * pArgs, uint
 
 	// Start all scripts
 	for ( auto && pair : tempScripts ) {
-		AddScript( pair.first, pair.second->GetCallbackFunction() );
+		for ( auto & script : pair.second ) {
+			AddScript( pair.first, script->GetCallbackFunction() );
+		}
 	}
 
 	return ScriptThread::Reset( scriptHash, pArgs, argCount );
@@ -126,32 +130,30 @@ void ScriptManagerThread::AddScript( HMODULE module, void( *fn )( ) ) {
 	const std::string moduleName = GetModuleFullName( module );
 	const std::string shortName = GetFilename(moduleName);
 
-	LOG_PRINT( "Registering script '%s' (0x%p)", shortName.c_str(), fn );
-
-	if ( m_scripts.find( module ) != m_scripts.end() ) {
-
-		LOG_ERROR( "Script '%s' is already registered", shortName.c_str() );
-		return;
-	}
+	if (m_scripts.find( module ) == m_scripts.end())	
+		LOG_PRINT("Registering script '%s' (0x%p)", shortName.c_str(), fn);
+	else 
+		LOG_PRINT("Registering additional script thread '%s' (0x%p)", shortName.c_str(), fn);
 
 	if ( find(m_scriptNames.begin(), m_scriptNames.end(), 
-		moduleName) == m_scriptNames.end() )
+		moduleName ) == m_scriptNames.end() )
 	{
 		m_scriptNames.push_back( moduleName );
 	}
 
-	m_scripts[module] = std::make_shared<Script>( fn );
+	m_scripts[module].push_back(std::make_shared<Script>( fn ));
 }
 
 void ScriptManagerThread::RemoveScript( void( *fn )( ) ) {
 
-	for ( auto it = m_scripts.begin(); it != m_scripts.end(); ++it ) {
+	for (auto & pair : m_scripts) {
+		for (auto script : pair.second) {
+			if (script->GetCallbackFunction() == fn) {
 
-		auto pair = *it;
-		if ( pair.second->GetCallbackFunction() == fn ) {
+				RemoveScript(pair.first);
 
-			RemoveScript( pair.first );
-			break;
+				break;
+			}
 		}
 	}
 }
@@ -181,6 +183,11 @@ void DLL_EXPORT scriptRegister( HMODULE module, void( *function )( ) ) {
 	g_ScriptManagerThread.AddScript( module, function );
 }
 
+void DLL_EXPORT scriptRegisterAdditionalThread(HMODULE module, void(*function)()) {
+
+	g_ScriptManagerThread.AddScript(module, function);
+}
+
 void DLL_EXPORT scriptUnregister( void( *function )( ) ) {
 
 	g_ScriptManagerThread.RemoveScript( function );
@@ -194,12 +201,6 @@ void DLL_EXPORT scriptUnregister( HMODULE module ) {
 eGameVersion DLL_EXPORT getGameVersion() {
 
 	return (eGameVersion)gameVersion;
-}
-
-void DLL_EXPORT scriptRegisterAdditionalThread( HMODULE module, void( *function )( ) ) {
-
-	// TODO: Implement this at some point, to lazy right now
-	LOG_WARNING( "Plugin is trying to use 'scriptRegisterAdditionalThread' Implement me!!" );
 }
 
 static ScriptManagerContext g_context;
