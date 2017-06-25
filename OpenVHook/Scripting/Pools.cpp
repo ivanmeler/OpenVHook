@@ -38,7 +38,7 @@ bool CPools::Initialize()
 	location = pickupPoolPattern.count(1).get(0).get<char>(3);
 	if (location == nullptr) {
 
-		LOG_ERROR("Unable to find pedPoolPattern");
+		LOG_ERROR("Unable to find pickupsPoolPattern");
 		return false;
 	}
 	m_pPickupsPool = reinterpret_cast<decltype(m_pPickupsPool)>(location + *(int32_t*)location + 4);

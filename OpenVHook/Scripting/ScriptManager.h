@@ -32,7 +32,7 @@ public:
 
 		scriptFiber = nullptr;
 		callbackFunction = function;
-		wakteAt = timeGetTime();
+		wakedAt = timeGetTime();
 	}
 
 	~Script() {
@@ -54,7 +54,7 @@ public:
 private:
 
 	HANDLE			scriptFiber;
-	uint32_t		wakteAt;
+	uint32_t		wakedAt;
 	void( *callbackFunction )( );
 
 	void			Run();
@@ -63,7 +63,6 @@ private:
 typedef std::map<HMODULE,std::vector<std::shared_ptr<Script>>> scriptMap;
 
 class ScriptManagerThread : public ScriptThread {
-private:
 
 	scriptMap					m_scripts;
 	std::vector<std::string>	m_scriptNames;

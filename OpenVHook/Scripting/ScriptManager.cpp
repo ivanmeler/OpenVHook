@@ -24,7 +24,7 @@ void Script::Tick() {
 		mainFiber = ConvertThreadToFiber( nullptr );
 	}
 
-	if ( timeGetTime() < wakteAt) {
+	if ( timeGetTime() < wakedAt ) {
 		return;
 	}
 
@@ -58,7 +58,7 @@ void Script::Run() {
 
 void Script::Yield( uint32_t time ) {
 
-	wakteAt = timeGetTime() + time;
+	wakedAt = timeGetTime() + time;
 	SwitchToFiber( mainFiber );
 }
 
