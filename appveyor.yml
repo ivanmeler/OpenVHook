@@ -1,0 +1,10 @@
+image: Visual Studio 2017
+platform: x64
+configuration: Debug
+skip_tags: true
+
+init:
+  - git config --global core.autocrlf input
+
+artifacts:
+  - path: Build\$(configuration)\* 
