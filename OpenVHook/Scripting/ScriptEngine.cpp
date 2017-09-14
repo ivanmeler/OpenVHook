@@ -330,6 +330,10 @@ int ScriptEngine::GetGameVersion()
 		return 31;
 	case 0x89587500:
 		return 35;
+	case 0xC4834801:
+		return 36;
+	case 0xF36C5010:
+		return 37;
 	default:
 		return -1;
 	}
