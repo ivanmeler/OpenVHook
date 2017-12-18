@@ -226,6 +226,7 @@ DLL_EXPORT uint64_t * nativeCall() {
 		__try {
 
 			fn( &g_context );
+            scrNativeCallContext::SetVectorResults(&g_context);
 		} __except ( EXCEPTION_EXECUTE_HANDLER ) {
 
 			LOG_ERROR( "Error in nativeCall" );
