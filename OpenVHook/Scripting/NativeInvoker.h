@@ -11,6 +11,7 @@ protected:
 	void *		m_pArgs;
 
 	uint32_t	m_nDataCount;
+    alignas(uintptr_t)uint8_t m_vectorSpace[192];
 
 public:
 
@@ -39,6 +40,8 @@ public:
 		intptr_t * returnValues = (intptr_t*)m_pReturn;
 		return *(T*)&returnValues[idx];
 	}
+
+    static void(*SetVectorResults)(scrNativeCallContext*);
 };
 
 class NativeContext : public scrNativeCallContext {
@@ -46,7 +49,7 @@ private:
 
 	// Configuration
 	enum {
-		MaxNativeParams = 16,
+		MaxNativeParams = 32,
 		ArgSize = 8,
 	};
 
@@ -64,68 +67,22 @@ public:
 		m_nDataCount = 0;
 	}
 
-	template <typename T>
-	inline void Push( T value ) {
+    template <typename T>
+    inline void Push(T value) {
+        static_assert(sizeof(T) <= ArgSize, "Argument has an invalid size");
 
-		if ( sizeof( T ) > ArgSize ) {
-			throw "Argument has an invalid size";
-		} else if ( sizeof( T ) < ArgSize ) {
-			// Ensure we don't have any stray data
-			*reinterpret_cast<uintptr_t*>( m_TempStack + ArgSize * m_nArgCount ) = 0;
-		}
+        *reinterpret_cast<uintptr_t*>(m_TempStack + ArgSize * m_nArgCount) = 0;
 
-		*reinterpret_cast<T*>( m_TempStack + ArgSize * m_nArgCount ) = value;
-		m_nArgCount++;
-	}
+        *reinterpret_cast<T*>(m_TempStack + ArgSize * m_nArgCount) = value;
 
-	inline void Reverse() {
+        m_nArgCount++;
+    }
 
-		uintptr_t tempValues[MaxNativeParams];
-		uintptr_t * args = (uintptr_t*)m_pArgs;
+    template <typename T>
+    inline T GetResult() {
 
-		for ( uint32_t i = 0; i < m_nArgCount; i++ ) {
-
-			int target = m_nArgCount - i - 1;
-			tempValues[target] = args[i];
-		}
-
-		memcpy( m_TempStack, tempValues, sizeof( m_TempStack ) );
-	}
-
-	template <typename T>
-	inline T GetResult() {
-
-		return *reinterpret_cast<T*>( m_TempStack );
-	}
-};
-
-struct pass {
-	template<typename ...T> pass( T... ) {}
-};
-
-class NativeInvoke {
-private:
-
-	static void Invoke( NativeContext * cxt, uint64_t oldHash );
-
-public:
-
-	template<typename R, typename... Args>
-	static inline R Invoke( uint64_t Hash, Args... args ) {
-
-		NativeContext cxt;
-
-		pass{ ( [&]() {
-			cxt.Push( args );
-		}( ), 1 )... };
-
-		// reverse the order of the list since the pass method pushes in reverse
-		cxt.Reverse();
-
-		Invoke( &cxt, Hash );
-
-		return cxt.GetResult<R>();
-	}
+        return *reinterpret_cast<T*>(m_TempStack);
+    }
 };
 
 #endif // __NATIVE_INVOKER_H__
