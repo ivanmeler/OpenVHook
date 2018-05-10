@@ -94,7 +94,7 @@ bool ScriptEngine::Initialize() {
 	activeThreadTlsOffset = 0x830;
 	LOG_DEBUG("activeThreadTlsOffset 0x%.8X", activeThreadTlsOffset);
 
-	auto scrThreadIdPattern = pattern("8B 15 ? ? ? ? 48 8B 05 ? ? ? ? FF C2");
+	auto scrThreadIdPattern = pattern("89 15 ? ? ? ? 48 8B 0C D8");
 
 	location = scrThreadIdPattern.count(1).get(0).get<char>(0);
 	if (location == nullptr) {
@@ -380,7 +380,9 @@ int ScriptEngine::GetGameVersion()
 		return 37;
     case 0x83483024:
         return 38;
-    // todo: 1290 steam
+	case 0x2C0EB25:
+		return 40;
+	// todo: 1365 steam
 	default:
 		return -1;
 	}
