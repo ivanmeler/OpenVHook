@@ -7,54 +7,59 @@ using namespace Utility;
 
 void ASILoader::Initialize() {
 
-	LOG_PRINT("Loading *.asi plugins");
+    LOG_PRINT( "Loading *.asi plugins" );
 
-	const std::string currentFolder = GetRunningExecutableFolder();
-	const std::string asiFolder = currentFolder + "\\asi";
+    const std::string currentFolder = GetRunningExecutableFolder();
 
-	const std::string asiSearchQuery = asiFolder + "\\*.asi";
+    const auto loadPlugins = [&]( const std::string& asiFolder ) {
 
-	WIN32_FIND_DATAA fileData;
-	HANDLE fileHandle = FindFirstFileA(asiSearchQuery.c_str(), &fileData);
-	if (fileHandle != INVALID_HANDLE_VALUE) {
+        const std::string asiSearchQuery = asiFolder + "\\*.asi";
 
-		do {
+        WIN32_FIND_DATAA fileData;
+        HANDLE fileHandle = FindFirstFileA( asiSearchQuery.c_str(), &fileData );
+        if ( fileHandle != INVALID_HANDLE_VALUE ) {
 
-			const std::string pluginPath = asiFolder + "\\" + fileData.cFileName;
+            do {
 
-			LOG_PRINT("Loading \"%s\"", pluginPath.c_str());
+                const std::string pluginPath = asiFolder + "\\" + fileData.cFileName;
 
-			PEImage pluginImage;
-			if (!pluginImage.Load(pluginPath)) {
+                LOG_PRINT( "Loading \"%s\"", pluginPath.c_str() );
 
-				LOG_ERROR("\tFailed to load image");
-				continue;
-			}
+                PEImage pluginImage;
+                if ( !pluginImage.Load( pluginPath ) ) {
 
-			HMODULE module = LoadLibraryA(pluginPath.c_str());
-			if (module) {
-				LOG_PRINT("\tLoaded \"%s\" => 0x%p", fileData.cFileName, module);
-			}
-			else {
-				DWORD errorMessageID = ::GetLastError();
-				if (errorMessageID == 0)
-					LOG_ERROR("\tFailed to load");
+                    LOG_ERROR( "\tFailed to load image" );
+                    continue;
+                }
 
-				LPSTR messageBuffer = nullptr;
-				size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-					NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+                HMODULE module = LoadLibraryA( pluginPath.c_str() );
+                if ( module ) {
+                    LOG_PRINT( "\tLoaded \"%s\" => 0x%p", fileData.cFileName, module );
+                } else {
+                    DWORD errorMessageID = ::GetLastError();
+                    if ( errorMessageID == 0 )
+                        LOG_ERROR( "\tFailed to load" );
 
-				std::string message(messageBuffer, size);
+                    LPSTR messageBuffer = nullptr;
+                    size_t size = FormatMessageA( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                                                  NULL, errorMessageID, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), ( LPSTR )&messageBuffer, 0, NULL );
 
-				//Free the buffer.
-				LocalFree(messageBuffer);
-				LOG_ERROR("\tFailed to load: %s", message.c_str());
-			}
+                    std::string message( messageBuffer, size );
 
-		} while (FindNextFileA(fileHandle, &fileData));
+                    //Free the buffer.
+                    LocalFree( messageBuffer );
+                    LOG_ERROR( "\tFailed to load: %s", message.c_str() );
+                }
 
-		FindClose(fileHandle);
-	}
+            } while ( FindNextFileA( fileHandle, &fileData ) );
 
-	LOG_PRINT("Finished loading *.asi plugins");
+            FindClose( fileHandle );
+        }
+    };
+
+    loadPlugins( currentFolder );
+
+    loadPlugins( currentFolder + "\\asi" );
+
+    LOG_PRINT( "Finished loading *.asi plugins" );
 }
