@@ -1,3 +1,9 @@
+/*
+	THIS FILE IS A PART OF GTA V SCRIPT HOOK SDK
+				http://dev-c.com			
+		 (C) Alexander Blade 2015-2016
+*/
+
 #pragma once
 
 #include <windows.h>
@@ -39,16 +45,41 @@ IMPORT void drawTexture(int id, int index, int level, int time,
 	float posX, float posY, float rotation, float screenHeightScaleFactor,
 	float r, float g, float b, float a);
 
+// IDXGISwapChain::Present callback
+// Called right before the actual Present method call, render test calls don't trigger callbacks
+// When the game uses DX10 it actually uses DX11 with DX10 feature level
+// Remember that you can't call natives inside
+// void OnPresent(IDXGISwapChain *swapChain);
+typedef void(*PresentCallback)(void *);
+
+// Register IDXGISwapChain::Present callback
+// must be called on dll attach
+IMPORT void presentCallbackRegister(PresentCallback cb);
+
+// Unregister IDXGISwapChain::Present callback
+// must be called on dll detach
+IMPORT void presentCallbackUnregister(PresentCallback cb);
+
+/* keyboard */
+
+// DWORD key, WORD repeats, BYTE scanCode, BOOL isExtended, BOOL isWithAlt, BOOL wasDownBefore, BOOL isUpNow
+typedef void(*KeyboardHandler)(DWORD, WORD, BYTE, BOOL, BOOL, BOOL, BOOL);
+
+// Register keyboard handler
+// must be called on dll attach
+IMPORT void keyboardHandlerRegister(KeyboardHandler handler);
+
+// Unregister keyboard handler
+// must be called on dll detach
+IMPORT void keyboardHandlerUnregister(KeyboardHandler handler);
+
+/* scripts */
+
 IMPORT void scriptWait(DWORD time);
 IMPORT void scriptRegister(HMODULE module, void(*LP_SCRIPT_MAIN)());
 IMPORT void scriptRegisterAdditionalThread(HMODULE module, void(*LP_SCRIPT_MAIN)());
 IMPORT void scriptUnregister(HMODULE module);
 IMPORT void scriptUnregister(void(*LP_SCRIPT_MAIN)()); // deprecated
-
-typedef void(*KeyboardHandler)(DWORD, WORD, BYTE, BOOL, BOOL, BOOL, BOOL);
-
-IMPORT void keyboardHandlerRegister(KeyboardHandler handler);
-IMPORT void keyboardHandlerUnregister(KeyboardHandler handler);
 
 IMPORT void nativeInit(UINT64 hash);
 IMPORT void nativePush64(UINT64 val);
@@ -72,6 +103,8 @@ IMPORT int worldGetAllPeds(int *arr, int arrSize);
 IMPORT int worldGetAllObjects(int *arr, int arrSize);
 IMPORT int worldGetAllPickups(int *arr, int arrSize);
 
+/* misc */
+
 // Returns base object pointer using it's script handle
 // make sure that you check game version before accessing object fields because
 // offsets may differ between patches
@@ -79,65 +112,32 @@ IMPORT BYTE *getScriptHandleBaseAddress(int handle);
 
 enum eGameVersion : int
 {
-	v1_0_335_2_STEAM,
-	v1_0_335_2_NOSTEAM,
+	VER_1_0_335_2_STEAM,
+	VER_1_0_335_2_NOSTEAM,
 
-	v1_0_350_1_STEAM,
-	v1_0_350_2_NOSTEAM,
+	VER_1_0_350_1_STEAM,
+	VER_1_0_350_2_NOSTEAM,
 
-	v1_0_372_2_STEAM,
-	v1_0_372_2_NOSTEAM,
+	VER_1_0_372_2_STEAM,
+	VER_1_0_372_2_NOSTEAM,
 
-	v1_0_393_2_STEAM,
-	v1_0_393_2_NOSTEAM,
+	VER_1_0_393_2_STEAM,
+	VER_1_0_393_2_NOSTEAM,
 
-	v1_0_393_4_STEAM,
-	v1_0_393_4_NOSTEAM,
+	VER_1_0_393_4_STEAM,
+	VER_1_0_393_4_NOSTEAM,
 
-	v1_0_463_1_STEAM,
-	v1_0_463_1_NOSTEAM,
+	VER_1_0_463_1_STEAM,
+	VER_1_0_463_1_NOSTEAM,
 
-	v1_0_505_2_STEAM,
-	v1_0_505_2_NOSTEAM,
+	VER_1_0_505_2_STEAM,
+	VER_1_0_505_2_NOSTEAM,
 
-	v1_0_573_1_STEAM,
-	v1_0_573_1_NOSTEAM,
+	VER_1_0_573_1_STEAM,
+	VER_1_0_573_1_NOSTEAM,
 
-	v1_0_617_1_STEAM,
-	v1_0_617_1_NOSTEAM,
-
-	v1_0_678_1_STEAM,
-	v1_0_678_1_NOSTEAM,
-
-	v1_0_757_2_STEAM,
-	v1_0_757_2_NOSTEAM,
-
-	v1_0_757_3_STEAM,
-	v1_0_757_4_NOSTEAM,
-
-	v1_0_791_2_STEAM,
-	v1_0_791_2_NOSTEAM,
-
-	v1_0_877_1_STEAM,
-	v1_0_877_1_NOSTEAM,
-
-	v1_0_944_2_STEAM,
-	v1_0_944_2_NOSTEAM,
-
-	v1_0_1011_1_STEAM,
-	v1_0_1011_1_NOSTEAM,
-
-    v1_0_1032_1_STEAM,
-    v1_0_1032_1_NOSTEAM,
-
-	v1_0_1103_2_STEAM,
-	v1_0_1103_2_NOSTEAM,
-
-    v1_0_1180_2_STEAM,
-    v1_0_1180_2_NOSTEAM,
-
-    v1_0_1290_1_STEAM,
-    v1_0_1290_1_NOSTEAM,
+	VER_1_0_617_1_STEAM,
+	VER_1_0_617_1_NOSTEAM,
 
 	VER_SIZE,
 	VER_UNK = -1
