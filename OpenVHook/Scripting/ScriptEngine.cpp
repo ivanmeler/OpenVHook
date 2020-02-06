@@ -81,6 +81,12 @@ bool ScriptEngine::Initialize() {
 	executable_meta executable;
 	executable.EnsureInit();
 
+	auto p_launcherCheck = pattern("E8 ? ? ? ? 84 C0 75 0C B2 01 B9 2F").count(1).get(0).get<char>(0);
+	memset(p_launcherCheck, 0x90, 21);
+
+	auto p_legalNotice = pattern("72 1F E8 ? ? ? ? 8B 0D").count(1).get(0).get<char>(0);
+	memset(p_legalNotice, 0x90, 2);
+
 	auto scrThreadCollectionPattern = pattern("48 8B C8 EB 03 48 8B CB 48 8B 05");
 
 	char * location = scrThreadCollectionPattern.count(1).get(0).get<char>(11);

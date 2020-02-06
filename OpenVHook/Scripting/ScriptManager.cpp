@@ -37,11 +37,9 @@ void Script::Tick() {
 
 	else if (ScriptEngine::GetGameState() == GameStatePlaying) {
 
-		LOG_PRINT("Launching main()");
-
 		scriptFiber = CreateFiber(NULL, [](LPVOID handler) {
 			__try {
-
+				LOG_PRINT("Launching main() at 0x%p", handler);
 				reinterpret_cast<Script*>( handler )->Run();
 			} __except (EXCEPTION_EXECUTE_HANDLER) {
 
@@ -103,7 +101,25 @@ bool ScriptManagerThread::LoadScripts() {
 
 	for (auto && scriptName : m_scriptNames)
 	{
-		LoadLibraryA( scriptName.c_str() );
+		LOG_PRINT("Loading \"%s\"", scriptName.c_str());
+		HMODULE module = LoadLibraryA(scriptName.c_str());
+		if (module) {
+			LOG_PRINT("\tLoaded \"%s\" => 0x%p", scriptName.c_str(), module);
+		}
+		else {
+			DWORD errorMessageID = ::GetLastError();
+			if (errorMessageID == 0)
+				LOG_ERROR("\tFailed to load");
+
+			LPSTR messageBuffer = nullptr;
+			size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+				NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+
+			std::string message(messageBuffer, size);
+			//Free the buffer.
+			LocalFree(messageBuffer);
+			LOG_ERROR("\tFailed to load: %s", message.c_str());
+		}
 	}
 
 	return true;
@@ -118,7 +134,6 @@ void ScriptManagerThread::FreeScripts() {
 	}
 
 	for (auto && pair : tempScripts) {
-
 		FreeLibrary( pair.first );
 	}
 

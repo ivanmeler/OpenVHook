@@ -61,8 +61,16 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(SolutionDir)Build\$(Configuration)\$(TargetName).lib" "$(SolutionDir)SDK\lib\" /Y</Command>
+      <Command>copy "$(SolutionDir)Build\$(Configuration)\$(TargetName).dll" "D:\Games\SteamLibrary\steamapps\common\Grand Theft Auto V\$(TargetName).dll" /Y</Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Command>
+      </Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Message>
+      </Message>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
