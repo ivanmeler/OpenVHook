@@ -19,52 +19,53 @@ GlobalTable globalTable;
 
 CPools pools;
 
+#pragma pack(push)
+#pragma pack(4)		// _unknown 4 bytes
 // https://www.unknowncheats.me/forum/grand-theft-auto-v/144028-reversal-thread-81.html#post1931323
 struct NativeRegistration {
-    uint64_t nextRegistration1;
-    uint64_t nextRegistration2;
+    uint64_t nextRegBase;
+    uint64_t nextRegKey;
     ScriptEngine::NativeHandler handlers[7];
     uint32_t numEntries1;
     uint32_t numEntries2;
+    uint32_t _unknown;
     uint64_t hashes;
 
-    inline NativeRegistration* getNextRegistration() {
-        uintptr_t result;
-        auto v5 = reinterpret_cast<uintptr_t>(&nextRegistration1);
-        auto v12 = 2i64;
-        auto v13 = v5 ^ nextRegistration2;
-        auto v14 = (char *)&result - v5;
-        do
-        {
-            *(DWORD*)&v14[v5] = v13 ^ *(DWORD*)v5;
-            v5 += 4i64;
-            --v12;
-        } while (v12);
+	/*
+		// decryption
+		key = this ^ nextRegKey  // only lower 32 bits
+		nextReg = nextRegBase ^ key<<32 ^ key
 
-        return reinterpret_cast<NativeRegistration*>(result);
-    }
+		// encryption
+		key = this ^ nextRegKey  // only lower 32 bits
+		nextRegBase = nextReg ^ key<<32 ^ key
+		
+		only lower 32 bits of this^nextRegKey are used, higher 32 bits are ignored.
+		thus, higher 32 bit of nexRegBase must contain the info of (masked) higher address of next registration.
+		the first two members of struct are named as Base/Key respectively in that sense.
+	*/
+	inline NativeRegistration* getNextRegistration() {
+		uint32_t key = (uint32_t)(reinterpret_cast<uint64_t>(this) ^ nextRegKey);
+		return reinterpret_cast<NativeRegistration*>(nextRegBase ^ (((uint64_t)key) << 32) ^ key);
+	}
+
+	inline void setNextRegistration(NativeRegistration* nextReg, uint64_t nextKey) {
+		nextRegKey = nextKey;
+		uint32_t key = (uint32_t)(reinterpret_cast<uint64_t>(this) ^ nextRegKey);
+		nextRegBase = reinterpret_cast<uint64_t>(nextReg) ^ (((uint64_t)key) << 32) ^ key;
+	}
 
     inline uint32_t getNumEntries() {
-        return ((uintptr_t)&numEntries1) ^ numEntries1 ^ numEntries2;
+        return (uint32_t)((uintptr_t)&numEntries1) ^ numEntries1 ^ numEntries2;
     }
 
     inline uint64_t getHash(uint32_t index) {
-
-        auto naddr = 16 * index + reinterpret_cast<uintptr_t>(&nextRegistration1) + 0x54;
-        auto v8 = 2i64;
-        uint64_t nResult;
-        auto v11 = (char *)&nResult - naddr;
-        auto v10 = naddr ^  *(DWORD*)(naddr + 8);
-        do
-        {
-            *(DWORD *)&v11[naddr] = v10 ^ *(DWORD*)(naddr);
-            naddr += 4i64;
-            --v8;
-        } while (v8);
-
-        return nResult;
+		uint64_t* phashes = &hashes;
+		uint32_t key = (uint32_t)(reinterpret_cast<uint64_t>(&phashes[2 * index]) ^ phashes[2 * index + 1]);
+		return phashes[2 * index] ^ (((uint64_t)key) << 32) ^ key;
     }
 };
+#pragma pack(pop)
 
 static NativeRegistration ** registrationTable;
 
@@ -382,6 +383,8 @@ int ScriptEngine::GetGameVersion()
         return 38;
 	case 0x2C0EB25:
 		return 40;
+	case 0x8B484874:	// 1.0.1868.0 STEAM
+		return 43;
 	// todo: 1365 steam
 	default:
 		return -1;
