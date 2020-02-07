@@ -327,7 +327,6 @@ uint64_t ScriptEngine::GetNewHashFromOldHash( uint64_t oldHash ) {
 		if (found) break;
 	}
 	foundHashCache[oldHash] = newHash;
-	LOG_DEBUG("Found hash %llX => %llX", oldHash, newHash);
 	return newHash;
 }
 
