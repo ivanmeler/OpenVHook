@@ -14,8 +14,9 @@ static uint32_t * scrThreadCount;
 static scriptHandlerMgr * g_scriptHandlerMgr;
 
 int gameVersion = ScriptEngine::GetGameVersion();
-
+const static int searchDepth = ScriptEngine::GameVersionToSearchDepth(gameVersion);
 GlobalTable globalTable;
+
 
 CPools pools;
 
@@ -29,7 +30,7 @@ struct NativeRegistration {
     uint32_t numEntries1;
     uint32_t numEntries2;
     uint32_t _unknown;
-    uint64_t hashes;
+    uint64_t hashes[7];
 
 	/*
 		// decryption
@@ -60,9 +61,8 @@ struct NativeRegistration {
     }
 
     inline uint64_t getHash(uint32_t index) {
-		uint64_t* phashes = &hashes;
-		uint32_t key = (uint32_t)(reinterpret_cast<uint64_t>(&phashes[2 * index]) ^ phashes[2 * index + 1]);
-		return phashes[2 * index] ^ (((uint64_t)key) << 32) ^ key;
+		uint32_t key = (uint32_t)(reinterpret_cast<uint64_t>(&hashes[2 * index]) ^ hashes[2 * index + 1]);
+		return hashes[2 * index] ^ (((uint64_t)key) << 32) ^ key;
     }
 };
 #pragma pack(pop)
@@ -301,15 +301,34 @@ uint64_t ScriptEngine::GetNewHashFromOldHash( uint64_t oldHash ) {
 		return cachePair->second;
 	}
 
-	auto pair = nativeHashMap.find( oldHash );
-	if ( pair == nativeHashMap.end() ) {
-
-		LOG_ERROR( "Failed to find new hash for 0x%p", oldHash );
-		return 0;
+	/*
+	// orignial reversed search algorhitm.
+	uint64_t newHash = oldHash;
+	for (int i = 0; i < searchDepth; i++) {
+		for (int j = 0; j < fullHashMapCount; j++) {
+			if (fullHashMap[j][i] == newHash)
+				newHash = fullHashMap[j][i + 1];
+			break;
+		}
 	}
+	*/
 
-	foundHashCache[oldHash] = pair->second;
-	return pair->second;
+	// optimized
+	uint64_t newHash = oldHash;
+	for (int i = 0; i < fullHashMapCount; i++) {
+		bool found = false;
+		for (int j = 0; j < searchDepth; j++) {
+			if (fullHashMap[i][j] == newHash) {
+				found = true;
+				if (fullHashMap[i][j + 1])
+					newHash = fullHashMap[i][j + 1];
+			}
+		}
+		if (found) break;
+	}
+	foundHashCache[oldHash] = newHash;
+	LOG_DEBUG("Found hash %llX => %llX", oldHash, newHash);
+	return newHash;
 }
 
 eGameState ScriptEngine::GetGameState() {
@@ -390,9 +409,95 @@ int ScriptEngine::GetGameVersion()
 	case 0x2C0EB25:
 		return 40;
 	case 0x8B484874:	// 1.0.1868.0 STEAM
-		return 43;
+		return 54;
 	// todo: 1365 steam
 	default:
 		return -1;
+	}
+}
+
+int ScriptEngine::GameVersionToSearchDepth(int version)
+{
+	switch (version) {
+	case 0:
+	case 1:
+		return 0;
+	case 2:
+	case 3:
+		return 1;
+	case 4:
+	case 5:
+		return 2;
+	case 6:
+	case 7:
+	case 8:
+	case 9:
+		return 3;
+	case 10:
+	case 11:
+		return 4;
+	case 12:
+	case 13:
+		return 5;
+	case 14:
+	case 15:
+		return 6;
+	case 16:
+	case 17:
+		return 7;
+	case 18:
+	case 19:
+		return 8;
+	case 20:
+	case 21:
+	case 22:
+	case 23:
+		return 9;
+	case 24:
+	case 25:
+		return 10;
+	case 26:
+	case 27:
+		return 11;
+	case 28:
+	case 29:
+		return 12;
+	case 30:
+	case 31:
+	case 32:
+	case 33:
+		return 13;
+	case 34:
+	case 35:
+		return 14;
+	case 36:
+	case 37:
+		return 15;
+	case 38:
+	case 39:
+		return 16;
+	case 40:
+	case 41:
+		return 17;
+	case 42:
+	case 43:
+	case 44:
+	case 45:
+		return 18;
+	case 46:
+	case 47:
+	case 48:
+	case 49:
+		return 19;
+	case 50:
+	case 51:
+	case 52:
+	case 53:
+		return 20;
+	case 54:
+	case 55:
+		return 21;
+	default:
+		return fullHashMapDepth - 1;
 	}
 }

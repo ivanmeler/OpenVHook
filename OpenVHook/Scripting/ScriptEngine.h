@@ -74,6 +74,8 @@ public:
 	static eGameState GetGameState();
 
 	static int GetGameVersion();
+
+	static int GameVersionToSearchDepth(int gameVersion);
 };
 
 #endif // __SCRIPT_ENGINE_H__
