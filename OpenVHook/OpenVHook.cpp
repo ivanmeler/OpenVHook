@@ -41,9 +41,9 @@ static Thread mainThread = Thread([](ThreadState*) {
 static Thread initThread = Thread([](ThreadState* ts) {
 	ts->shouldExit = 1;
 
-//#ifdef _DEBUG
+#ifdef _DEBUG
 	GetConsole()->Allocate();
-//#endif
+#endif
 
 	LOG_PRINT( "Initializing..." );
 

@@ -37,11 +37,12 @@ namespace Utility {
 		GetConsole()->SetTextColor( logTypeToColorMap[logType] );
 
 		char buff2[2048] = { 0 };
-		sprintf_s( buff2, "%s %s\n", GetTimeFormatted().c_str(), buf );
-		// Print to console
-		printf( buff2 );
 
 #ifndef _DEBUG
+		sprintf_s(buff2, "%s %s\n", GetTimeFormatted().c_str(), buf);
+		// Print to console
+		printf(buff2);
+
 		if ( logType == LogTypeDebug ) {
 			return;
 		}

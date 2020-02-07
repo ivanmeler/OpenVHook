@@ -5,6 +5,8 @@
 
 using namespace Utility;
 
+std::vector<std::string>	ASILoader::LoadedPlugins;
+
 void ASILoader::Initialize() {
 
     LOG_PRINT( "Loading *.asi plugins" );
@@ -32,9 +34,15 @@ void ASILoader::Initialize() {
                     continue;
                 }
 
+                if (std::find(LoadedPlugins.begin(), LoadedPlugins.end(), pluginPath) != LoadedPlugins.end()) {
+                    LOG_DEBUG("\tSkip \"%s\"", fileData.cFileName);
+                    continue;
+                }
+
                 HMODULE module = LoadLibraryA( pluginPath.c_str() );
                 if ( module ) {
                     LOG_PRINT( "\tLoaded \"%s\" => 0x%p", fileData.cFileName, module );
+                    LoadedPlugins.push_back(pluginPath);
                 } else {
                     DWORD errorMessageID = ::GetLastError();
                     if ( errorMessageID == 0 )

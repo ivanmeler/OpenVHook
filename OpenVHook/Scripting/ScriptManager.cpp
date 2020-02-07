@@ -2,6 +2,7 @@
 #include "ScriptEngine.h"
 #include "..\Utility\Log.h"
 #include "..\Utility\General.h"
+#include "..\ASI Loader\ASILoader.h"
 #include "Types.h"
 
 using namespace Utility;
@@ -39,7 +40,7 @@ void Script::Tick() {
 
 		scriptFiber = CreateFiber(NULL, [](LPVOID handler) {
 			__try {
-				LOG_PRINT("Launching main() at 0x%p", handler);
+				LOG_PRINT("Launching script %s", reinterpret_cast<Script*>(handler)->name.c_str());
 				reinterpret_cast<Script*>( handler )->Run();
 			} __except (EXCEPTION_EXECUTE_HANDLER) {
 
@@ -99,28 +100,20 @@ bool ScriptManagerThread::LoadScripts() {
 
 	if (!m_scripts.empty()) return false;
 
+	// load known scripts
 	for (auto && scriptName : m_scriptNames)
 	{
 		LOG_PRINT("Loading \"%s\"", scriptName.c_str());
 		HMODULE module = LoadLibraryA(scriptName.c_str());
 		if (module) {
 			LOG_PRINT("\tLoaded \"%s\" => 0x%p", scriptName.c_str(), module);
-		}
-		else {
-			DWORD errorMessageID = ::GetLastError();
-			if (errorMessageID == 0)
-				LOG_ERROR("\tFailed to load");
-
-			LPSTR messageBuffer = nullptr;
-			size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-				NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
-
-			std::string message(messageBuffer, size);
-			//Free the buffer.
-			LocalFree(messageBuffer);
-			LOG_ERROR("\tFailed to load: %s", message.c_str());
+		} else {
+			LOG_DEBUG("\tSkip \"%s\"", scriptName.c_str());
 		}
 	}
+
+	// ASILoader::Initialize only load new DLLs if called multiple times.
+	ASILoader::Initialize();
 
 	return true;
 }
@@ -156,7 +149,7 @@ void ScriptManagerThread::AddScript( HMODULE module, void( *fn )( ) ) {
 		m_scriptNames.push_back( moduleName );
 	}
 
-	m_scripts[module].push_back(std::make_shared<Script>( fn ));
+	m_scripts[module].push_back(std::make_shared<Script>( fn, shortName ));
 }
 
 void ScriptManagerThread::RemoveScript( void( *fn )( ) ) {
@@ -376,7 +369,10 @@ int DLL_EXPORT worldGetAllPickups(int* array, int arraySize) {
 
 DLL_EXPORT int createTexture(const char* fileName)
 {	
-	LOG_WARNING("plugin is trying to use createTexture");
+	static bool flag_warn_createTexture = true;
+	if(flag_warn_createTexture)
+		LOG_WARNING("plugin is trying to use createTexture");
+	flag_warn_createTexture = false;
 	return 0;
 }
 
@@ -385,6 +381,9 @@ DLL_EXPORT void drawTexture(int id, int index, int level, int time,
 	float posX, float posY, float rotation, float screenHeightScaleFactor,
 	float r, float g, float b, float a)
 {
-	LOG_WARNING("plugin is trying to use drawTexture");
+	static bool flag_warn_drawTexture = true;
+	if (flag_warn_drawTexture)
+		LOG_WARNING("plugin is trying to use drawTexture");
+	flag_warn_drawTexture = false;
 }
 

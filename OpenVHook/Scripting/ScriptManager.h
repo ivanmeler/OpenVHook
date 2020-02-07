@@ -28,8 +28,8 @@ public:
 class Script {
 public:
 
-	Script( void( *function )( ) ) {
-
+	Script( void( *function )( ), const std::string& scriptName ) {
+		name = scriptName;
 		scriptFiber = nullptr;
 		callbackFunction = function;
 		wakedAt = timeGetTime();
@@ -50,6 +50,8 @@ public:
 
 		return callbackFunction;
 	}
+
+	std::string     name;
 
 private:
 
