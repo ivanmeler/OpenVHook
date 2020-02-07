@@ -71,7 +71,7 @@ static NativeRegistration ** registrationTable;
 
 static std::unordered_set<ScriptThread*> g_ownedThreads;
 
-static std::unordered_map<uint64_t, uint64_t> foundHashCache;
+static std::unordered_map<uint64_t, ScriptEngine::NativeHandler> foundHashCache;
 
 static eGameState * gameState;
 
@@ -274,60 +274,61 @@ void ScriptEngine::CreateThread( ScriptThread * thread ) {
 
 ScriptEngine::NativeHandler ScriptEngine::GetNativeHandler( uint64_t oldHash ) {
 
-	uint64_t newHash = GetNewHashFromOldHash( oldHash );
-	if ( newHash == 0 ) {
-		return nullptr;
+	auto cachePair = foundHashCache.find(oldHash);
+	if (cachePair != foundHashCache.end()) {
+		return cachePair->second;
 	}
 
-	NativeRegistration * table = registrationTable[newHash & 0xFF];
+	NativeHandler handler = nullptr;
+	uint64_t newHash = GetNewHashFromOldHash( oldHash );
 
-	for ( ; table; table = table->getNextRegistration() ) {
-
-		for ( uint32_t i = 0; i < table->getNumEntries(); i++ ) {
-
-			if ( newHash == table->getHash(i) ) {
-				return table->handlers[i];
+	if ( newHash == 0 ) {
+		LOG_DEBUG("Failed to GetNewHashFromOldHash(%llX)", oldHash);
+		handler = nullptr;
+	} else {
+		NativeRegistration* table = registrationTable[newHash & 0xFF];
+		for (; table; table = table->getNextRegistration()) {
+			bool found = false;
+			for (uint32_t i = 0; i < table->getNumEntries(); i++) {
+				if (newHash == table->getHash(i)) {
+					handler = table->handlers[i];
+					found = true;
+					break;
+				}
 			}
+			if (found) break;
 		}
 	}
-
-	return nullptr;
+	foundHashCache[oldHash] = handler;
+	return handler;
 }
 
 uint64_t ScriptEngine::GetNewHashFromOldHash( uint64_t oldHash ) {
 
-	auto cachePair = foundHashCache.find( oldHash );
-	if ( cachePair != foundHashCache.end() ) {
-		return cachePair->second;
+	if (searchDepth == 0) {
+		// no need for conversion
+		return oldHash;
 	}
-
-	/*
-	// orignial reversed search algorhitm.
-	uint64_t newHash = oldHash;
-	for (int i = 0; i < searchDepth; i++) {
-		for (int j = 0; j < fullHashMapCount; j++) {
-			if (fullHashMap[j][i] == newHash)
-				newHash = fullHashMap[j][i + 1];
-			break;
-		}
-	}
-	*/
 
 	// optimized
-	uint64_t newHash = oldHash;
+	// scan row by row at column 0. If nothing found, try column 1, etc
+	// if firstly found old hash at (i,j), get the non-zero hash at (i, x) where x->searchDepth(as close as possible) && j<x<=searchDepth
 	for (int i = 0; i < fullHashMapCount; i++) {
-		bool found = false;
-		for (int j = 0; j < searchDepth; j++) {
-			if (fullHashMap[i][j] == newHash) {
-				found = true;
-				if (fullHashMap[i][j + 1])
-					newHash = fullHashMap[i][j + 1];
+		for (int j = 0; j <= searchDepth; j++) {
+			if (fullHashMap[i][j] == oldHash) {
+				// found
+				for(int k = searchDepth; k > j; k--) {		// reverse search. sooner for latest hash
+					uint64_t newHash = fullHashMap[i][k];
+					if (newHash == 0)
+						continue;
+					return newHash;
+				}
+				// all 0 except the first one. No need for conversion
+				return oldHash;
 			}
 		}
-		if (found) break;
 	}
-	foundHashCache[oldHash] = newHash;
-	return newHash;
+	return 0;
 }
 
 eGameState ScriptEngine::GetGameState() {

@@ -38,11 +38,13 @@ namespace Utility {
 
 		char buff2[2048] = { 0 };
 
-#ifndef _DEBUG
+#ifdef _DEBUG
 		sprintf_s(buff2, "%s %s\n", GetTimeFormatted().c_str(), buf);
 		// Print to console
 		printf(buff2);
+#endif
 
+#ifndef _DEBUG
 		if ( logType == LogTypeDebug ) {
 			return;
 		}
