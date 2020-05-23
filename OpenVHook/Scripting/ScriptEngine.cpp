@@ -404,13 +404,14 @@ int ScriptEngine::GetGameVersion()
 		return 36;
 	case 0xF36C5010:
 		return 37;
-    case 0x83483024:
-        return 38;
+   	case 0x83483024:
+        	return 38;
 	case 0x2C0EB25:
 		return 40;
 	case 0x8B484874:	// 1.0.1868.0 STEAM
 		return 54;
-	// todo: 1365 steam
+	case 0xA0C18148:        // 1.0.1868.4 EPIC
+		return 57;
 	default:
 		return -1;
 	}
@@ -496,6 +497,7 @@ int ScriptEngine::GameVersionToSearchDepth(int version)
 		return 20;
 	case 54:
 	case 55:
+	case 57:
 		return 21;
 	default:
 		return fullHashMapDepth - 1;
