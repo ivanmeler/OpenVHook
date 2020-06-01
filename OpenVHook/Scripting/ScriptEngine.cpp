@@ -411,7 +411,7 @@ int ScriptEngine::GetGameVersion()
 	case 0x8B484874:	// 1.0.1868.0 STEAM
 		return 54;
 	case 0xA0C18148:        // 1.0.1868.4 EPIC
-		return 57;
+		return 58;
 	default:
 		return -1;
 	}
@@ -497,7 +497,7 @@ int ScriptEngine::GameVersionToSearchDepth(int version)
 		return 20;
 	case 54:
 	case 55:
-	case 57:
+	case 58:
 		return 21;
 	default:
 		return fullHashMapDepth - 1;
