@@ -3,6 +3,10 @@
 #include "..\Utility\Pattern.h"
 #include "..\Utility\Log.h"
 
+#include <iostream>
+#include <string>
+
+
 using namespace Utility;
 
 static pgPtrCollection<ScriptThread> * scrThreadCollection;
@@ -75,6 +79,103 @@ static std::unordered_map<uint64_t, ScriptEngine::NativeHandler> foundHashCache;
 
 static eGameState * gameState;
 
+static std::vector<std::string> GameVersionString = {
+    "VER_1_0_335_2_STEAM",     
+    "VER_1_0_335_2_NOSTEAM",    
+
+    "VER_1_0_350_1_STEAM",     
+    "VER_1_0_350_2_NOSTEAM",    
+
+    "VER_1_0_372_2_STEAM",      
+    "VER_1_0_372_2_NOSTEAM",    
+
+    "VER_1_0_393_2_STEAM",      
+    "VER_1_0_393_2_NOSTEAM",    
+    "VER_1_0_393_4_STEAM",     
+    "VER_1_0_393_4_NOSTEAM",    
+
+    "VER_1_0_463_1_STEAM",      
+    "VER_1_0_463_1_NOSTEAM",    
+
+    "VER_1_0_505_2_STEAM",     
+    "VER_1_0_505_2_NOSTEAM",    
+
+    "VER_1_0_573_1_STEAM",      
+    "VER_1_0_573_1_NOSTEAM",    
+
+    "VER_1_0_617_1_STEAM",      
+    "VER_1_0_617_1_NOSTEAM",    
+
+    "VER_1_0_678_1_STEAM",     
+    "VER_1_0_678_1_NOSTEAM",   
+
+    "VER_1_0_757_2_STEAM",     
+    "VER_1_0_757_2_NOSTEAM",   
+
+    "VER_1_0_757_4_STEAM",     
+    "VER_1_0_757_4_NOSTEAM",    
+
+    "VER_1_0_791_2_STEAM",      
+    "VER_1_0_791_2_NOSTEAM",   
+
+    "VER_1_0_877_1_STEAM",     
+    "VER_1_0_877_1_NOSTEAM",    
+
+    "VER_1_0_944_2_STEAM",    
+    "VER_1_0_944_2_NOSTEAM",  
+
+    "VER_1_0_1011_1_STEAM",    
+    "VER_1_0_1011_1_NOSTEAM",   
+
+    "VER_1_0_1032_1_STEAM",     
+    "VER_1_0_1032_1_NOSTEAM",  
+
+    "VER_1_0_1103_2_STEAM",     
+    "VER_1_0_1103_2_NOSTEAM",  
+
+    "VER_1_0_1180_2_STEAM",    
+    "VER_1_0_1180_2_NOSTEAM",   
+
+    "VER_1_0_1290_1_STEAM",     
+    "VER_1_0_1290_1_NOSTEAM",   
+
+    "VER_1_0_1365_1_STEAM",     
+    "VER_1_0_1365_1_NOSTEAM",   
+
+    "VER_1_0_1493_0_STEAM",     
+    "VER_1_0_1493_0_NOSTEAM",   
+
+    "VER_1_0_1493_1_STEAM",     
+    "VER_1_0_1493_1_NOSTEAM",   
+    
+    "VER_1_0_1604_0_STEAM",     
+    "VER_1_0_1604_0_NOSTEAM",  
+
+    "VER_1_0_1604_1_STEAM",     
+    "VER_1_0_1604_1_NOSTEAM",   
+
+    "VER_1_0_1737_0_STEAM",    
+    "VER_1_0_1737_0_NOSTEAM",  
+
+    "VER_1_0_1737_6_STEAM",   
+    "VER_1_0_1737_6_NOSTEAM",   
+
+    "VER_1_0_1868_0_STEAM",  
+    "VER_1_0_1868_0_NOSTEAM", 
+
+    "VER_1_0_1868_1_STEAM",  
+    "VER_1_0_1868_1_NOSTEAM", 
+
+	"VER_1_0_1868_4_EGS",
+};
+
+static std::string GameVersionToString(int version) {
+    if (version > GameVersionString.size() - 1 || version < 0) {
+        return std::to_string(version);
+    }
+    return GameVersionString[version];
+}
+
 bool ScriptEngine::Initialize() {
 	LOG_PRINT("Initializing ScriptEngine...");
 
@@ -98,7 +199,7 @@ bool ScriptEngine::Initialize() {
 	scrThreadCollection = reinterpret_cast<decltype(scrThreadCollection)>(location + *(int32_t*)location + 4);
 	LOG_DEBUG("scrThreadCollection\t 0x%p (0x%.8X)", scrThreadCollection, reinterpret_cast<uintptr_t>(scrThreadCollection) - executable.begin());
 
-	activeThreadTlsOffset = 0x830;
+	activeThreadTlsOffset = *pattern("48 8B 04 D0 4A 8B 14 00 48 8B 01 F3 44 0F 2C 42 20").count(1).get(0).get<uint32_t>(-4);
 	LOG_DEBUG("activeThreadTlsOffset 0x%.8X", activeThreadTlsOffset);
 
 	auto scrThreadIdPattern = pattern("89 15 ? ? ? ? 48 8B 0C D8");
@@ -168,7 +269,7 @@ bool ScriptEngine::Initialize() {
 	memcpy(&block, script_location, 2);
 	VirtualProtect(script_location, 2, OldProtection, NULL);
 
-	auto gameStatePattern =				pattern("83 3D ? ? ? ? ? 8A D9 74 0A");
+	auto gameStatePattern =	pattern("83 3D ? ? ? ? ? 8A D9 74 0A");
 
 	location = gameStatePattern.count(1).get(0).get<char>(2);
 	if (location == nullptr) {
@@ -192,7 +293,7 @@ bool ScriptEngine::Initialize() {
 	LOG_DEBUG("g_globalPtr\t\t 0x%p (0x%.8X)", globalTable.GlobalBasePtr, reinterpret_cast<uintptr_t>(globalTable.GlobalBasePtr) - executable.begin());
 
 	//gameVersion = GetGameVersion();
-	LOG_PRINT("Game version #%i", gameVersion);
+	LOG_PRINT(("Game version is " + GameVersionToString(gameVersion)).c_str());
 
 	// Initialize internal pools
 	pools.Initialize();
@@ -410,7 +511,7 @@ int ScriptEngine::GetGameVersion()
 		return 40;
 	case 0x8B484874:	// 1.0.1868.0 STEAM
 		return 54;
-	case 0xA0C18148:        // 1.0.1868.4 EPIC
+	case 0xA0C18148:    // 1.0.1868.4 EPIC
 		return 58;
 	default:
 		return -1;
