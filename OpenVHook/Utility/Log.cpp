@@ -68,7 +68,7 @@ namespace Utility {
 
 	void Log::LogToFile( const char * buff ) {
 
-		const std::string fileName = GetOurModuleFolder() + "\\OpenHookV.log";
+		const std::string fileName = GetOurModuleFolder() + "\\OpenVHook.log";
 
 		std::ofstream logFile;
 		logFile.open( fileName, std::ios_base::app );
