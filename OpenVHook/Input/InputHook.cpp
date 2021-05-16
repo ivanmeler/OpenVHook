@@ -23,7 +23,7 @@ void InputHook::WndKeyEvent(DWORD key, WORD repeats, BYTE scanCode, BOOL isExten
 {
 	if (key < 0xFF)
 	{
-		keyboardState[key].lastUpTime = GetTickCount();
+		keyboardState[key].lastUpTime = GetTickCount64();
 		keyboardState[key].isWithAlt = isWithAlt;
 		keyboardState[key].wasDownBefore = wasDownBefore;
 		keyboardState[key].isUpNow = isUpNow;

@@ -11,8 +11,8 @@ using namespace Utility;
 
 static Thread mainThread = Thread([](ThreadState*) {
 
-	if (GetTickCount() - keyboardState[VK_CONTROL].lastUpTime < 5000 && !keyboardState[VK_CONTROL].isUpNow &&
-		GetTickCount() - keyboardState[0x52].lastUpTime < 100 && keyboardState[0x52].isUpNow)
+	if (GetTickCount64() - keyboardState[VK_CONTROL].lastUpTime < 5000 && !keyboardState[VK_CONTROL].isUpNow &&
+		GetTickCount64() - keyboardState[0x52].lastUpTime < 100 && keyboardState[0x52].isUpNow)
 	{
 		keyboardState[0x52].lastUpTime = 0;
 

@@ -28,13 +28,13 @@ CPools pools;
 #pragma pack(4)		// _unknown 4 bytes
 // https://www.unknowncheats.me/forum/grand-theft-auto-v/144028-reversal-thread-81.html#post1931323
 struct NativeRegistration {
-    uint64_t nextRegBase;
-    uint64_t nextRegKey;
-    ScriptEngine::NativeHandler handlers[7];
-    uint32_t numEntries1;
-    uint32_t numEntries2;
-    uint32_t _unknown;
-    uint64_t hashes[7];
+	uint64_t nextRegBase;
+	uint64_t nextRegKey;
+	ScriptEngine::NativeHandler handlers[7];
+	uint32_t numEntries1;
+	uint32_t numEntries2;
+	uint32_t _unknown;
+	uint64_t hashes[7];
 
 	/*
 		// decryption
@@ -50,24 +50,24 @@ struct NativeRegistration {
 		the first two members of struct are named as Base/Key respectively in that sense.
 	*/
 	inline NativeRegistration* getNextRegistration() {
-		uint32_t key = (uint32_t)(reinterpret_cast<uint64_t>(this) ^ nextRegKey);
-		return reinterpret_cast<NativeRegistration*>(nextRegBase ^ (((uint64_t)key) << 32) ^ key);
+		uint32_t key = static_cast<uint32_t>(reinterpret_cast<uint64_t>(this) ^ nextRegKey);
+		return reinterpret_cast<NativeRegistration*>(nextRegBase ^ (static_cast<uint64_t>(key) << 32) ^ key);
 	}
 
 	inline void setNextRegistration(NativeRegistration* nextReg, uint64_t nextKey) {
 		nextRegKey = nextKey;
-		uint32_t key = (uint32_t)(reinterpret_cast<uint64_t>(this) ^ nextRegKey);
-		nextRegBase = reinterpret_cast<uint64_t>(nextReg) ^ (((uint64_t)key) << 32) ^ key;
+		uint32_t key = static_cast<uint32_t>(reinterpret_cast<uint64_t>(this) ^ nextRegKey);
+		nextRegBase = reinterpret_cast<uint64_t>(nextReg) ^ (static_cast<uint64_t>(key) << 32) ^ key;
 	}
 
-    inline uint32_t getNumEntries() {
-        return (uint32_t)((uintptr_t)&numEntries1) ^ numEntries1 ^ numEntries2;
-    }
+	inline uint32_t getNumEntries() {
+		return static_cast<uint32_t>(reinterpret_cast<uint64_t>(&numEntries1)) ^ numEntries1 ^ numEntries2;
+	}
 
-    inline uint64_t getHash(uint32_t index) {
-		uint32_t key = (uint32_t)(reinterpret_cast<uint64_t>(&hashes[2 * index]) ^ hashes[2 * index + 1]);
-		return hashes[2 * index] ^ (((uint64_t)key) << 32) ^ key;
-    }
+	inline uint64_t getHash(uint32_t index) {
+		uint32_t key = static_cast<uint32_t>(reinterpret_cast<uint64_t>(&hashes[2 * index]) ^ hashes[2 * index + 1]);
+		return hashes[2 * index] ^ (static_cast<uint64_t>(key) << 32) ^ key;
+	}
 };
 #pragma pack(pop)
 
@@ -80,100 +80,113 @@ static std::unordered_map<uint64_t, ScriptEngine::NativeHandler> foundHashCache;
 static eGameState * gameState;
 
 static std::vector<std::string> GameVersionString = {
-    "VER_1_0_335_2_STEAM",     
-    "VER_1_0_335_2_NOSTEAM",    
+	"VER_1_0_335_2_STEAM",     
+	"VER_1_0_335_2_NOSTEAM",    
 
-    "VER_1_0_350_1_STEAM",     
-    "VER_1_0_350_2_NOSTEAM",    
+	"VER_1_0_350_1_STEAM",     
+	"VER_1_0_350_2_NOSTEAM",    
 
-    "VER_1_0_372_2_STEAM",      
-    "VER_1_0_372_2_NOSTEAM",    
+	"VER_1_0_372_2_STEAM",      
+	"VER_1_0_372_2_NOSTEAM",    
 
-    "VER_1_0_393_2_STEAM",      
-    "VER_1_0_393_2_NOSTEAM",    
-    "VER_1_0_393_4_STEAM",     
-    "VER_1_0_393_4_NOSTEAM",    
+	"VER_1_0_393_2_STEAM",      
+	"VER_1_0_393_2_NOSTEAM",    
+	"VER_1_0_393_4_STEAM",     
+	"VER_1_0_393_4_NOSTEAM",    
 
-    "VER_1_0_463_1_STEAM",      
-    "VER_1_0_463_1_NOSTEAM",    
+	"VER_1_0_463_1_STEAM",      
+	"VER_1_0_463_1_NOSTEAM",    
 
-    "VER_1_0_505_2_STEAM",     
-    "VER_1_0_505_2_NOSTEAM",    
+	"VER_1_0_505_2_STEAM",     
+	"VER_1_0_505_2_NOSTEAM",    
 
-    "VER_1_0_573_1_STEAM",      
-    "VER_1_0_573_1_NOSTEAM",    
+	"VER_1_0_573_1_STEAM",      
+	"VER_1_0_573_1_NOSTEAM",    
 
-    "VER_1_0_617_1_STEAM",      
-    "VER_1_0_617_1_NOSTEAM",    
+	"VER_1_0_617_1_STEAM",      
+	"VER_1_0_617_1_NOSTEAM",    
 
-    "VER_1_0_678_1_STEAM",     
-    "VER_1_0_678_1_NOSTEAM",   
+	"VER_1_0_678_1_STEAM",     
+	"VER_1_0_678_1_NOSTEAM",   
 
-    "VER_1_0_757_2_STEAM",     
-    "VER_1_0_757_2_NOSTEAM",   
+	"VER_1_0_757_2_STEAM",     
+	"VER_1_0_757_2_NOSTEAM",   
 
-    "VER_1_0_757_4_STEAM",     
-    "VER_1_0_757_4_NOSTEAM",    
+	"VER_1_0_757_4_STEAM",     
+	"VER_1_0_757_4_NOSTEAM",    
 
-    "VER_1_0_791_2_STEAM",      
-    "VER_1_0_791_2_NOSTEAM",   
+	"VER_1_0_791_2_STEAM",      
+	"VER_1_0_791_2_NOSTEAM",   
 
-    "VER_1_0_877_1_STEAM",     
-    "VER_1_0_877_1_NOSTEAM",    
+	"VER_1_0_877_1_STEAM",     
+	"VER_1_0_877_1_NOSTEAM",    
 
-    "VER_1_0_944_2_STEAM",    
-    "VER_1_0_944_2_NOSTEAM",  
+	"VER_1_0_944_2_STEAM",    
+	"VER_1_0_944_2_NOSTEAM",  
 
-    "VER_1_0_1011_1_STEAM",    
-    "VER_1_0_1011_1_NOSTEAM",   
+	"VER_1_0_1011_1_STEAM",    
+	"VER_1_0_1011_1_NOSTEAM",   
 
-    "VER_1_0_1032_1_STEAM",     
-    "VER_1_0_1032_1_NOSTEAM",  
+	"VER_1_0_1032_1_STEAM",     
+	"VER_1_0_1032_1_NOSTEAM",  
 
-    "VER_1_0_1103_2_STEAM",     
-    "VER_1_0_1103_2_NOSTEAM",  
+	"VER_1_0_1103_2_STEAM",     
+	"VER_1_0_1103_2_NOSTEAM",  
 
-    "VER_1_0_1180_2_STEAM",    
-    "VER_1_0_1180_2_NOSTEAM",   
+	"VER_1_0_1180_2_STEAM",    
+	"VER_1_0_1180_2_NOSTEAM",   
 
-    "VER_1_0_1290_1_STEAM",     
-    "VER_1_0_1290_1_NOSTEAM",   
+	"VER_1_0_1290_1_STEAM",     
+	"VER_1_0_1290_1_NOSTEAM",   
 
-    "VER_1_0_1365_1_STEAM",     
-    "VER_1_0_1365_1_NOSTEAM",   
+	"VER_1_0_1365_1_STEAM",     
+	"VER_1_0_1365_1_NOSTEAM",   
 
-    "VER_1_0_1493_0_STEAM",     
-    "VER_1_0_1493_0_NOSTEAM",   
+	"VER_1_0_1493_0_STEAM",     
+	"VER_1_0_1493_0_NOSTEAM",   
 
-    "VER_1_0_1493_1_STEAM",     
-    "VER_1_0_1493_1_NOSTEAM",   
-    
-    "VER_1_0_1604_0_STEAM",     
-    "VER_1_0_1604_0_NOSTEAM",  
+	"VER_1_0_1493_1_STEAM",     
+	"VER_1_0_1493_1_NOSTEAM",   
+	
+	"VER_1_0_1604_0_STEAM",     
+	"VER_1_0_1604_0_NOSTEAM",  
 
-    "VER_1_0_1604_1_STEAM",     
-    "VER_1_0_1604_1_NOSTEAM",   
+	"VER_1_0_1604_1_STEAM",     
+	"VER_1_0_1604_1_NOSTEAM",   
 
-    "VER_1_0_1737_0_STEAM",    
-    "VER_1_0_1737_0_NOSTEAM",  
+	"VER_1_0_1737_0_STEAM",    
+	"VER_1_0_1737_0_NOSTEAM",  
 
-    "VER_1_0_1737_6_STEAM",   
-    "VER_1_0_1737_6_NOSTEAM",   
+	"VER_1_0_1737_6_STEAM",   
+	"VER_1_0_1737_6_NOSTEAM",   
 
-    "VER_1_0_1868_0_STEAM",  
-    "VER_1_0_1868_0_NOSTEAM", 
+	"VER_1_0_1868_0_STEAM",
+	"VER_1_0_1868_0_NOSTEAM",
 
-    "VER_1_0_1868_1_STEAM",  
-    "VER_1_0_1868_1_NOSTEAM", 
+	"VER_1_0_1868_1_STEAM",
+	"VER_1_0_1868_1_NOSTEAM",
 
-	"VER_1_0_1868_4_EGS",
+	"VER_1_0_2060_0_STEAM",
+	"VER_1_0_2060_0_NOSTEAM",
+
+	"VER_1_0_2060_1_STEAM",
+	"VER_1_0_2060_1_NOSTEAM",
+
+	"VER_1_0_2189_0_STEAM",
+	"VER_1_0_2189_0_NOSTEAM",
+
+	"VER_1_0_2215_0_STEAM",
+	"VER_1_0_2215_0_NOSTEAM",
+
+	"VER_1_0_2245_0_STEAM",
+	"VER_1_0_2245_0_NOSTEAM"
 };
 
 static std::string GameVersionToString(int version) {
-    if (version > GameVersionString.size() - 1 || version < 0) {
-        return std::to_string(version);
-    }
-    return GameVersionString[version];
+	if (version > GameVersionString.size() - 1 || version < 0) {
+		return std::to_string(version);
+	}
+	return GameVersionString[version];
 }
 
 bool ScriptEngine::Initialize() {
@@ -246,11 +259,11 @@ bool ScriptEngine::Initialize() {
 	g_scriptHandlerMgr = reinterpret_cast<decltype(g_scriptHandlerMgr)>(location + *(int32_t*)location + 4);
 	LOG_DEBUG("g_scriptHandlerMgr\t 0x%p (0x%.8X)", g_scriptHandlerMgr, reinterpret_cast<uintptr_t>(g_scriptHandlerMgr) - executable.begin());
 
-    // vector3 pointer fix
-    if (auto void_location = pattern("83 79 18 ? 48 8B D1 74 4A FF 4A 18").count(1).get(0).get<void>())
-    {
-        scrNativeCallContext::SetVectorResults = (void(*)(scrNativeCallContext*))(void_location);
-    }
+	// vector3 pointer fix
+	if (auto void_location = pattern("83 79 18 ? 48 8B D1 74 4A FF 4A 18").count(1).get(0).get<void>())
+	{
+		scrNativeCallContext::SetVectorResults = (void(*)(scrNativeCallContext*))(void_location);
+	}
 
 	//script_location
 	auto getScriptIdBlock = pattern("80 78 32 00 75 34 B1 01 E8");
@@ -264,10 +277,10 @@ bool ScriptEngine::Initialize() {
 
 	// ERR_SYS_PURE
 	static uint8_t block[2] = { 0xEB };
-	unsigned long OldProtection;
+	unsigned long OldProtection, OldProtection2;
 	VirtualProtect(script_location, 2, PAGE_EXECUTE_READWRITE, &OldProtection);
 	memcpy(&block, script_location, 2);
-	VirtualProtect(script_location, 2, OldProtection, NULL);
+	VirtualProtect(script_location, 2, OldProtection, &OldProtection2);
 
 	auto gameStatePattern =	pattern("83 3D ? ? ? ? ? 8A D9 74 0A");
 
@@ -485,10 +498,16 @@ int ScriptEngine::GetGameVersion()
 		return 20;
 	case 0xE80C75D2:
 		return 21;
+	case 0x158B48FF:
+		return 22;
 	case 0x137978C:
 		return 23;
 	case 0xB86AE800:
 		return 24;
+	case 0x158B4800:
+		return 25;
+	case 0x3B830000:
+		return 26;
 	case 0x75C68441:
 		return 27;
 	case 0x828B1C74:
@@ -499,6 +518,12 @@ int ScriptEngine::GetGameVersion()
 		return 30;
 	case 0xB2F4E30D:
 		return 31;
+	case 0x3DCF2715:
+		return 32;
+	case 0x5C0FF300:
+		return 33;
+	case 0x8B4801B0:
+		return 34;
 	case 0x89587500:
 		return 35;
 	case 0xC4834801:
@@ -506,14 +531,76 @@ int ScriptEngine::GetGameVersion()
 	case 0xF36C5010:
 		return 37;
    	case 0x83483024:
-        	return 38;
-	case 0x2C0EB25:
+        return 38;
+	case 0x3B8005:
+		return 39;
+	case 0x248489CF:
 		return 40;
-	case 0x8B484874:	// 1.0.1868.0 STEAM
+	case 0x2C0EB25:
+		return 41;
+	case 0x410102A4:
+		return 42;
+	case 0xD0590FC5:
+		return 43;
+	case 0xA7E2B9:
+		return 44;
+	case 0x8B4C0000:
+		return 45;
+	case 0x280F3465:
+		return 46;
+	case 0xFFFA3468:
+		return 47;
+	case 0x48C48B48:
+		return 48;
+	case 0xE8304789:
+		return 49;
+	case 0x8B480477:
+		return 50;
+	case 0xEBE06529:
+		return 51;
+	case 0xFF30440:
+		return 52;
+	case 0x700F4166:
+		return 53;
+	case 0x8B484874:
 		return 54;
-	case 0xA0C18148:    // 1.0.1868.4 EPIC
+	case 0x88693E8:
+		return 55;
+	case 0xCB8B48D7:
+		return 56;
+	case 0x89480446:
+		return 57;
+	case 0xA0C18148:
 		return 58;
+	case 0x7738432F:
+		return 59;
+	case 0x3944F98B:
+		return 61;
+	case 0x126AE900:
+		return 63;
+	case 0xC1000000:
+		return 64;
+	case 0x1428D41:
+		return 65;
+	case 0x33450158:
+		return 66;
+	case 0xDE80000:
+		return 67;
+	case 0x448D48CA:
+		return 68;
 	default:
+		if (codeSig == 0) {
+			if (*(DWORD*)((DWORD64)pModule + 0xB00000) == 0x7F58E3E8)
+				return 60;
+			else
+				return 62;
+		}
+		if (codeSig == 0x89605189) {
+			if (*(DWORD*)((DWORD64)pModule + 0x1433B08) == 0x245C8948)
+				return 6;
+			else
+				return 8;
+		}
 		return -1;
 	}
 }
@@ -598,8 +685,22 @@ int ScriptEngine::GameVersionToSearchDepth(int version)
 		return 20;
 	case 54:
 	case 55:
+	case 56:
+	case 57:
 	case 58:
 		return 21;
+	case 59:
+	case 60:
+	case 61:
+	case 62:
+	case 63:
+		return 22;
+	case 64:
+	case 65:
+	case 66:
+	case 67:
+	case 68:
+		return 23;
 	default:
 		return fullHashMapDepth - 1;
 	}

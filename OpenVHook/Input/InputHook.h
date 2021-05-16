@@ -5,7 +5,7 @@
 
 typedef struct KeyState
 {
-	int lastUpTime;
+	ULONGLONG lastUpTime;
 	BOOL isWithAlt;
 	BOOL wasDownBefore;
 	BOOL isUpNow;
