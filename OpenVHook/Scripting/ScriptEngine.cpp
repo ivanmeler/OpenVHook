@@ -424,14 +424,25 @@ uint64_t ScriptEngine::GetNewHashFromOldHash( uint64_t oldHash ) {
 		return oldHash;
 	}
 
-	// optimized
+	// Algorithm Explained
+
+	// natives.h uses constant oldHashes to represent functions. One oldHash is expected to be mapped to the same function in all game versions.
+	// In order to use the same oldHash in all version of games, where hash of the same function changed from version to version,
+	// Alexander Blade maintains a hashmap that stores a complete 2-D hash list version by version.
+
+	// The oldHash is expected to be the oldest hash of a function, but in reality it may not exist at hashVer=0 or until latest, or may be even not the actual oldest hash.
+	// That is why we need to search from the hashVer=0 to the latest.
+	// Once we found the first occurrence of oldHash (of function Fn_i), we should locate the Fn_i line that stores hashes of different hashVers,
+	// then search all the way down to the exact hashVersion of the running game.
+
+	// optimized implementation
 	// scan row by row at column 0. If nothing found, try column 1, etc
 	// if firstly found old hash at (i,j), get the non-zero hash at (i, x) where x->searchDepth(as close as possible) && j<x<=searchDepth
 	for (int i = 0; i < fullHashMapCount; i++) {
 		for (int j = 0; j <= searchDepth; j++) {
 			if (fullHashMap[i][j] == oldHash) {
 				// found
-				for(int k = searchDepth; k > j; k--) {		// reverse search. sooner for latest hash
+				for(int k = searchDepth; k > j; k--) {		// search from latest hash to oldest hash. faster for the most cases
 					uint64_t newHash = fullHashMap[i][k];
 					if (newHash == 0)
 						continue;
@@ -531,7 +542,7 @@ int ScriptEngine::GetGameVersion()
 	case 0xF36C5010:
 		return 37;
    	case 0x83483024:
-        return 38;
+		return 38;
 	case 0x3B8005:
 		return 39;
 	case 0x248489CF:
