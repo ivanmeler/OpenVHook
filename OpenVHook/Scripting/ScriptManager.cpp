@@ -3,6 +3,7 @@
 #include "..\Utility\Log.h"
 #include "..\Utility\General.h"
 #include "..\ASI Loader\ASILoader.h"
+#include "..\DirectXHook\DirectXHook.h"
 #include "Types.h"
 
 using namespace Utility;
@@ -369,11 +370,7 @@ int DLL_EXPORT worldGetAllPickups(int* array, int arraySize) {
 
 DLL_EXPORT int createTexture(const char* fileName)
 {	
-	static bool flag_warn_createTexture = true;
-	if(flag_warn_createTexture)
-		LOG_WARNING("plugin is trying to use createTexture");
-	flag_warn_createTexture = false;
-	return 0;
+	return g_D3DHook.CreateTexture(fileName);
 }
 
 DLL_EXPORT void drawTexture(int id, int index, int level, int time,
@@ -381,9 +378,9 @@ DLL_EXPORT void drawTexture(int id, int index, int level, int time,
 	float posX, float posY, float rotation, float screenHeightScaleFactor,
 	float r, float g, float b, float a)
 {
-	static bool flag_warn_drawTexture = true;
-	if (flag_warn_drawTexture)
-		LOG_WARNING("plugin is trying to use drawTexture");
-	flag_warn_drawTexture = false;
+	g_D3DHook.DrawTexture(id, index, level, time,
+		sizeX, sizeY, centerX, centerY,
+		posX, posY, rotation, screenHeightScaleFactor,
+		r, g, b, a);
 }
 

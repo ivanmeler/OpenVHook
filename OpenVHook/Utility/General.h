@@ -16,6 +16,20 @@ namespace Utility {
 
 	void		SetOurModuleHandle( const HMODULE module );
 	HMODULE		GetOurModuleHandle();
+
+	std::wstring str_to_wstr(const std::string& string);
+	std::string  wstr_to_str(const std::wstring& wstring);
+
+	/* General Misc */
+	template <typename T>
+	inline void SafeRelease(T *&p)
+	{
+		if (nullptr != p)
+		{
+			p->Release();
+			p = nullptr;
+		}
+	}
 }
 
 #endif // __GENERAL_H__

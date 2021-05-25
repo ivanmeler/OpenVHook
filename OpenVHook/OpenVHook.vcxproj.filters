@@ -41,6 +41,12 @@
     <ClCompile Include="Scripting\Pools.cpp">
       <Filter>Scripting\Pools</Filter>
     </ClCompile>
+    <ClCompile Include="DirectXHook\DirectXHook.cpp">
+      <Filter>DirectXHook</Filter>
+    </ClCompile>
+    <ClCompile Include="Scripting\NativeHashMap.cpp">
+      <Filter>Scripting\Native Invoker</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Input">
@@ -91,6 +97,9 @@
     <Filter Include="Scripting\Pools">
       <UniqueIdentifier>{35981836-3de3-4b64-82c5-daa0cc5cfd2d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DirectXHook">
+      <UniqueIdentifier>{8572bffb-790e-4b6e-9ab0-a5469b1e4a01}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OpenVHook.h" />
@@ -108,9 +117,6 @@
     </ClInclude>
     <ClInclude Include="Scripting\ScriptEngine.h">
       <Filter>Scripting\Script Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="Scripting\NativeHashMap.h">
-      <Filter>Scripting</Filter>
     </ClInclude>
     <ClInclude Include="Scripting\NativeInvoker.h">
       <Filter>Scripting\Native Invoker</Filter>
@@ -154,9 +160,13 @@
     <ClInclude Include="Scripting\Pools.h">
       <Filter>Scripting\Pools</Filter>
     </ClInclude>
+    <ClInclude Include="DirectXHook\DirectXHook.h">
+      <Filter>DirectXHook</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="LICENSE-ntauthority.txt" />

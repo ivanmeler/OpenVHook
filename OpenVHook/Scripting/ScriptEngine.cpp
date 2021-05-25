@@ -1,7 +1,7 @@
 #include "ScriptEngine.h"
-#include "NativeHashMap.h"
 #include "..\Utility\Pattern.h"
 #include "..\Utility\Log.h"
+#include "..\DirectXHook\DirectXHook.h"
 
 #include <iostream>
 #include <string>
@@ -111,7 +111,6 @@ static std::vector<std::string> GameVersionString = {
 
 	"VER_1_0_757_2_STEAM",     
 	"VER_1_0_757_2_NOSTEAM",   
-
 	"VER_1_0_757_4_STEAM",     
 	"VER_1_0_757_4_NOSTEAM",    
 
@@ -144,31 +143,27 @@ static std::vector<std::string> GameVersionString = {
 
 	"VER_1_0_1493_0_STEAM",     
 	"VER_1_0_1493_0_NOSTEAM",   
-
 	"VER_1_0_1493_1_STEAM",     
 	"VER_1_0_1493_1_NOSTEAM",   
 	
 	"VER_1_0_1604_0_STEAM",     
 	"VER_1_0_1604_0_NOSTEAM",  
-
 	"VER_1_0_1604_1_STEAM",     
 	"VER_1_0_1604_1_NOSTEAM",   
 
 	"VER_1_0_1737_0_STEAM",    
 	"VER_1_0_1737_0_NOSTEAM",  
-
 	"VER_1_0_1737_6_STEAM",   
 	"VER_1_0_1737_6_NOSTEAM",   
 
 	"VER_1_0_1868_0_STEAM",
 	"VER_1_0_1868_0_NOSTEAM",
-
 	"VER_1_0_1868_1_STEAM",
 	"VER_1_0_1868_1_NOSTEAM",
+	"VER_1_0_1868_4_EGS",
 
 	"VER_1_0_2060_0_STEAM",
 	"VER_1_0_2060_0_NOSTEAM",
-
 	"VER_1_0_2060_1_STEAM",
 	"VER_1_0_2060_1_NOSTEAM",
 
@@ -191,6 +186,13 @@ static std::string GameVersionToString(int version) {
 
 bool ScriptEngine::Initialize() {
 	LOG_PRINT("Initializing ScriptEngine...");
+
+	// init Direct3d hook
+	if (!g_D3DHook.InitializeHooks())
+	{
+		LOG_ERROR("Failed to Initialize Direct3d Hooks");
+		return false;
+	}
 
 	executable_meta executable;
 	executable.EnsureInit();
@@ -306,7 +308,7 @@ bool ScriptEngine::Initialize() {
 	LOG_DEBUG("g_globalPtr\t\t 0x%p (0x%.8X)", globalTable.GlobalBasePtr, reinterpret_cast<uintptr_t>(globalTable.GlobalBasePtr) - executable.begin());
 
 	//gameVersion = GetGameVersion();
-	LOG_PRINT(("Game version is " + GameVersionToString(gameVersion)).c_str());
+	LOG_PRINT("Game version is %s (%d)", GameVersionToString(gameVersion).c_str(), gameVersion);
 
 	// Initialize internal pools
 	pools.Initialize();
