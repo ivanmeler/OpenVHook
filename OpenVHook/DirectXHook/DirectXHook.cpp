@@ -94,13 +94,15 @@ InputType RCast(InputType Input, ReturnType Ret)
 
 bool DX11Hook::InitializeHooks()
 {
-	uint64_t** (*getSwapChainPtr)() = (uint64_t** (*)())pattern("48 8B 05 ? ? ? ? C3 48 8B C1 8D 4A 0E").count(1).get(0).get<void*>(0);
+	static bool has_set_IDXGISwapChain = false;
+	uint64_t** (*getSwapChainPtr)() = nullptr;
 
-	while (true) {
-		static bool has_set_IDXGISwapChain = false;
-		if (!has_set_IDXGISwapChain) {
+	while (!has_set_IDXGISwapChain) {
+		if (!getSwapChainPtr) {
+			getSwapChainPtr = (uint64_t**(*)())pattern("48 8B 05 ? ? ? ? C3 48 8B C1 8D 4A 0E").count(1).get(0).get<void*>(0);
+		}
+		if (getSwapChainPtr) {
 			uint64_t** swapChainPtr = getSwapChainPtr();
-			swapChainVT = *swapChainPtr;
 			if (swapChainPtr && *swapChainPtr) {
 				swapChainVT = *swapChainPtr;
 				LOG_DEBUG("INIT: IDXGISwapChain 0x%016llX	Present:(0x%016llX)", swapChainVT, swapChainVT[SC_PRESENT]);
@@ -111,7 +113,7 @@ bool DX11Hook::InitializeHooks()
 				// swapChainVT[SC_PRESENT] = (uint64_t)New_IDXGISwapChain_Present;
 				// swapChainVT[SC_RESIZEBUFFERS] = (uint64_t)New_IDXGISwapChain_ResizeBuffers;
 
-				// alternative: copy VT, replace VT
+				// bypass: copy VT, replace VT
 				memcpy(g_copy_swapChainVT, swapChainVT, sizeof(g_copy_swapChainVT));
 				*swapChainPtr = g_copy_swapChainVT;
 				g_copy_swapChainVT[SC_PRESENT] = (uint64_t)New_IDXGISwapChain_Present;
@@ -121,7 +123,7 @@ bool DX11Hook::InitializeHooks()
 				break;
 			}
 		}
-		Sleep(100);
+		Sleep(1000);
 	}
 	return true;
 }
