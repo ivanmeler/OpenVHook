@@ -13,12 +13,9 @@ Fn_D3DX11CreateShaderResourceViewFromFileA D3DX11CreateShaderResourceViewFromFil
 Fn_D3DX11CreateShaderResourceViewFromMemory D3DX11CreateShaderResourceViewFromMemory = nullptr;
 
 DX11Hook g_D3DHook;
-
 uint64_t* swapChainVT = nullptr;
+uint64_t g_copy_swapChainVT[0x40]{ };
 
-// typedef
-typedef HRESULT(WINAPI* Fn_IDXGISwapChain_Present)(IDXGISwapChain* chain, UINT syncInterval, UINT flags);
-typedef HRESULT(WINAPI* Fn_IDXGISwapChain_ResizeBuffers)(IDXGISwapChain* chain, UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT NewFormat, UINT SwapChainFlags);
 
 //texture declariations
 std::unordered_map<int, std::wstring> CreateTextureArray;
@@ -70,7 +67,6 @@ HRESULT WINAPI New_IDXGISwapChain_Present(IDXGISwapChain* chain, UINT syncInterv
 }
 
 // IDXGISwapChain::ResizeBuffers
-DetourHook<HRESULT WINAPI(IDXGISwapChain*, UINT, UINT, UINT, DXGI_FORMAT, UINT)> Detour_ResizeBuffers;
 Fn_IDXGISwapChain_ResizeBuffers g_orig_IDXGISwapChain_ResizeBuffers = nullptr;
 HRESULT WINAPI New_IDXGISwapChain_ResizeBuffers(IDXGISwapChain* chain, UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT NewFormat, UINT SwapChainFlags)
 {
@@ -78,13 +74,13 @@ HRESULT WINAPI New_IDXGISwapChain_ResizeBuffers(IDXGISwapChain* chain, UINT Buff
 
 	g_D3DHook.ReleaseDevices(false);
 
-	Detour_ResizeBuffers(chain, BufferCount, Width, Height, NewFormat, SwapChainFlags);
+	g_orig_IDXGISwapChain_ResizeBuffers(chain, BufferCount, Width, Height, NewFormat, SwapChainFlags);
 
 	g_D3DHook.m_IsResizing = false;
 
 	return HRESULT();
 
-	return Detour_ResizeBuffers(chain, BufferCount, Width, Height, NewFormat, SwapChainFlags);
+	return g_orig_IDXGISwapChain_ResizeBuffers(chain, BufferCount, Width, Height, NewFormat, SwapChainFlags);
 }
 
 //====================================================================================================================================================================
@@ -95,8 +91,6 @@ InputType RCast(InputType Input, ReturnType Ret)
 {
 	return reinterpret_cast<decltype(Input)>(Ret);
 }
-
-uint64_t g_copy_swapChainVT[0x40]{ };
 
 bool DX11Hook::InitializeHooks()
 {
@@ -185,7 +179,7 @@ void DX11Hook::ReleaseDevices(bool unhook)
 
 	if (unhook)
 	{
-		Detour_ResizeBuffers.UnHook();
+		swapChainVT[SC_RESIZEBUFFERS] = (uint64_t)g_orig_IDXGISwapChain_ResizeBuffers;
 		swapChainVT[SC_PRESENT] = (uint64_t)g_orig_IDXGISwapChain_Present;
 	}
 }

@@ -25,6 +25,8 @@ using namespace DirectX;
 using namespace Microsoft::WRL;
 
 typedef void(*PresentCallback)(void *);
+typedef HRESULT(WINAPI* Fn_IDXGISwapChain_Present)(IDXGISwapChain* chain, UINT syncInterval, UINT flags);
+typedef HRESULT(WINAPI* Fn_IDXGISwapChain_ResizeBuffers)(IDXGISwapChain* chain, UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT NewFormat, UINT SwapChainFlags);
 
 typedef HRESULT (*Fn_D3DX11CreateShaderResourceViewFromFileA) (
   _In_  ID3D11Device             *pDevice,
