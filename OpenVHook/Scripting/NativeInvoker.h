@@ -86,4 +86,9 @@ public:
     }
 };
 
+#define fullHashMapCount 6354
+#define fullHashMapDepth 24
+
+extern uint64_t fullHashMap[fullHashMapCount][fullHashMapDepth];
+
 #endif // __NATIVE_INVOKER_H__
