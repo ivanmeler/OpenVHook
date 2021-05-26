@@ -42,18 +42,15 @@ void Script::Tick() {
 
 		scriptFiber = CreateFiber(NULL, [](LPVOID handler) {
 			const char* script_name = "";
-#ifdef NDEBUG
 			__try {
-#endif
-				// if debug, just throw the exception so we can debug
 				script_name = reinterpret_cast<Script*>(handler)->name.c_str();
 				LOG_PRINT("Launching script %s", script_name);
 				reinterpret_cast<Script*>( handler )->Run();
-#ifdef NDEBUG
 			} __except (EXCEPTION_EXECUTE_HANDLER) {
+				// here we can not easily break & debug.
+				// check dump at C:\Users\<UserName>\AppData\Local\CrashDumps\GTA5.exe.<PID>.dmp
 				LOG_ERROR("Error in script->Run %s", script_name);
 			}
-#endif
 		}, this );
 	}
 }
