@@ -5,6 +5,7 @@
 #include "..\ASI Loader\ASILoader.h"
 #include "..\DirectXHook\DirectXHook.h"
 #include "Types.h"
+#include "..\Input\InputHook.h"
 
 using namespace Utility;
 
@@ -384,3 +385,24 @@ DLL_EXPORT void drawTexture(int id, int index, int level, int time,
 		r, g, b, a);
 }
 
+/*Input*/
+DLL_EXPORT void WndProcHandlerRegister(TWndProcFn function) 
+{
+    g_WndProcCb.insert(function);
+}
+
+DLL_EXPORT void WndProcHandlerUnregister(TWndProcFn function) 
+{
+    g_WndProcCb.erase(function);
+}
+
+/* D3d SwapChain */
+DLL_EXPORT void presentCallbackRegister(PresentCallback cb) 
+{
+    g_D3DHook.AddCallback(cb);
+}
+
+DLL_EXPORT void presentCallbackUnregister(PresentCallback cb) 
+{
+    g_D3DHook.RemoveCallback(cb);
+}

@@ -16,12 +16,12 @@ OpenVHook is a standalone script hook for Grand Theft Auto V and fully open sour
 - Visual Studio 2019
 
 ## Bug Reporting
-Report bugs under [Github Issues](https://github.com/212antt/OpenVHook/issues)
+Report bugs under [Github Issues](https://github.com/attitus3/OpenVHook/issues)
 Make sure to include **OpenVHook.log** and if reporting an incompatiblity please also include the log file for that mods as well.
 
 
 ## Credits
-[CamxxCore](https://github.com/CamxxCore), [E66666666](https://github.com/E66666666), [ivanmeler](https://github.com/ivanmeler), [DKingCN](https://github.com/DKingCN), [JackD111](https://github.com/JackD111), [AteshM](https://github.com/AteshM), [yulon](https://github.com/yulon), [Stricted](https://github.com/Stricted) For all of there contributions towards the project. 
+[CamxxCore](https://github.com/CamxxCore), [E66666666](https://github.com/E66666666), [ivanmeler](https://github.com/ivanmeler), [DKingAlpha](https://github.com/DKingAlpha), [JackD111](https://github.com/JackD111), [AteshM](https://github.com/AteshM), [yulon](https://github.com/yulon), [Stricted](https://github.com/Stricted) For all of there contributions towards the project. 
 
 [NTAuthority/citizenMP](http://tohjo.eu/citidev/citizenmp) Most of the code is from them. I only changed it up here and there and added my own improvements.
 

@@ -13,8 +13,9 @@ Fn_D3DX11CreateShaderResourceViewFromFileA D3DX11CreateShaderResourceViewFromFil
 Fn_D3DX11CreateShaderResourceViewFromMemory D3DX11CreateShaderResourceViewFromMemory = nullptr;
 
 DX11Hook g_D3DHook;
-uint64_t* swapChainVT = nullptr;
+uint64_t* g_orig_swapChainVT = nullptr;
 uint64_t g_copy_swapChainVT[0x40]{ };
+uint64_t** g_swapChainPtr = nullptr;
 
 
 //texture declariations
@@ -102,20 +103,20 @@ bool DX11Hook::InitializeHooks()
 			getSwapChainPtr = (uint64_t**(*)())pattern("48 8B 05 ? ? ? ? C3 48 8B C1 8D 4A 0E").count(1).get(0).get<void*>(0);
 		}
 		if (getSwapChainPtr) {
-			uint64_t** swapChainPtr = getSwapChainPtr();
-			if (swapChainPtr && *swapChainPtr) {
-				swapChainVT = *swapChainPtr;
-				LOG_DEBUG("INIT: IDXGISwapChain 0x%016llX	Present:(0x%016llX)", swapChainVT, swapChainVT[SC_PRESENT]);
-				g_orig_IDXGISwapChain_Present = (Fn_IDXGISwapChain_Present)swapChainVT[SC_PRESENT];
-				g_orig_IDXGISwapChain_ResizeBuffers = (Fn_IDXGISwapChain_ResizeBuffers)swapChainVT[SC_RESIZEBUFFERS];
+			g_swapChainPtr = getSwapChainPtr();
+			if (g_swapChainPtr && *g_swapChainPtr) {
+				g_orig_swapChainVT = *g_swapChainPtr;
+				LOG_DEBUG("INIT: IDXGISwapChain 0x%016llX	Present:(0x%016llX)", g_orig_swapChainVT, g_orig_swapChainVT[SC_PRESENT]);
+				g_orig_IDXGISwapChain_Present = (Fn_IDXGISwapChain_Present)g_orig_swapChainVT[SC_PRESENT];
+				g_orig_IDXGISwapChain_ResizeBuffers = (Fn_IDXGISwapChain_ResizeBuffers)g_orig_swapChainVT[SC_RESIZEBUFFERS];
 				
 				// detected
 				// swapChainVT[SC_PRESENT] = (uint64_t)New_IDXGISwapChain_Present;
 				// swapChainVT[SC_RESIZEBUFFERS] = (uint64_t)New_IDXGISwapChain_ResizeBuffers;
 
 				// bypass: copy VT, replace VT
-				memcpy(g_copy_swapChainVT, swapChainVT, sizeof(g_copy_swapChainVT));
-				*swapChainPtr = g_copy_swapChainVT;
+				memcpy(g_copy_swapChainVT, g_orig_swapChainVT, sizeof(g_copy_swapChainVT));
+				*g_swapChainPtr = g_copy_swapChainVT;
 				g_copy_swapChainVT[SC_PRESENT] = (uint64_t)New_IDXGISwapChain_Present;
 				g_copy_swapChainVT[SC_RESIZEBUFFERS] = (uint64_t)New_IDXGISwapChain_ResizeBuffers;
 				LOG_DEBUG("INIT: IDXGISwapChain set");
@@ -181,8 +182,9 @@ void DX11Hook::ReleaseDevices(bool unhook)
 
 	if (unhook)
 	{
-		swapChainVT[SC_RESIZEBUFFERS] = (uint64_t)g_orig_IDXGISwapChain_ResizeBuffers;
-		swapChainVT[SC_PRESENT] = (uint64_t)g_orig_IDXGISwapChain_Present;
+		g_copy_swapChainVT[SC_RESIZEBUFFERS] = (uint64_t)g_orig_IDXGISwapChain_ResizeBuffers;
+		g_copy_swapChainVT[SC_PRESENT] = (uint64_t)g_orig_IDXGISwapChain_Present;
+		*g_swapChainPtr = g_orig_swapChainVT;
 	}
 }
 

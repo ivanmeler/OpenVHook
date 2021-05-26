@@ -5,10 +5,13 @@
 using namespace Utility;
 
 WNDPROC	oWndProc;
+std::set<TWndProcFn> g_WndProcCb;
 
 KeyState keyboardState[0xFF];
 
 LRESULT APIENTRY InputHook::WndProc( HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam ) {
+
+	for (auto& wndproc : g_WndProcCb) wndproc(uMsg, wParam, lParam );
 
 	if (uMsg == WM_KEYDOWN || uMsg == WM_KEYUP || uMsg == WM_SYSKEYDOWN || uMsg == WM_SYSKEYUP) {
 

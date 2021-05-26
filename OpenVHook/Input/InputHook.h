@@ -2,6 +2,7 @@
 #define __INPUT_HOOK_H__
 
 #include "..\OpenVHook.h"
+#include "..\..\SDK\inc\main.h"
 
 typedef struct KeyState
 {
@@ -12,6 +13,7 @@ typedef struct KeyState
 } KeyState_t;
 
 extern KeyState				keyboardState[];
+extern std::set<TWndProcFn>	g_WndProcCb;
 
 namespace InputHook {
 

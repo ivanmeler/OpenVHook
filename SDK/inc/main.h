@@ -73,6 +73,11 @@ IMPORT void keyboardHandlerRegister(KeyboardHandler handler);
 // must be called on dll detach
 IMPORT void keyboardHandlerUnregister(KeyboardHandler handler);
 
+/*Input*/
+typedef void(*TWndProcFn)(UINT, WPARAM, LPARAM);
+IMPORT void WndProcHandlerRegister(TWndProcFn handler);
+IMPORT void WndProcHandlerUnregister(TWndProcFn handler);
+
 /* scripts */
 
 IMPORT void scriptWait(DWORD time);
