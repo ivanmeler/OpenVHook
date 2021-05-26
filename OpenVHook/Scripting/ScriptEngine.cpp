@@ -73,7 +73,7 @@ struct NativeRegistration {
 
 static NativeRegistration ** registrationTable;
 
-static std::unordered_set<ScriptThread*> g_ownedThreads;
+static std::vector<std::pair<ScriptThread*, ScriptThread*>> g_ownedThreads;
 
 static std::unordered_map<uint64_t, ScriptEngine::NativeHandler> foundHashCache;
 
@@ -381,11 +381,28 @@ void ScriptEngine::CreateThread( ScriptThread * thread ) {
 	( *scrThreadCount )++;
 	( *scrThreadId )++;
 
+	ScriptThread* orig_thread = collection->at(slot);
 	collection->set( slot, thread );
 
-	g_ownedThreads.insert( thread );
+	g_ownedThreads.push_back({ thread, orig_thread });
 
 	LOG_DEBUG( "Created thread, id %d", thread->GetId() );
+}
+
+void ScriptEngine::RemoveAllThreads()
+{
+	std::reverse(g_ownedThreads.begin(), g_ownedThreads.end());
+	auto collection = GetThreadCollection();
+	int index = 0;
+	for (auto slot : * collection) {
+		for (auto& [th, orig_th]: g_ownedThreads) {
+			if (slot == th) {
+				collection->set(index, orig_th);
+			}
+		}
+		index++;
+	}
+	g_ownedThreads.clear();
 }
 
 ScriptEngine::NativeHandler ScriptEngine::GetNativeHandler( uint64_t oldHash ) {

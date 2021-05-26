@@ -63,6 +63,9 @@ public:
 	// Adds a precreated custom thread to the runtime and starts it
 	static void CreateThread( ScriptThread * thread );
 
+	// Remove all threads created by ScriptEngine::CreateThread
+	static void RemoveAllThreads();
+
 	// Native function handler type
 	typedef void( __cdecl * NativeHandler )( scrNativeCallContext * context );
 

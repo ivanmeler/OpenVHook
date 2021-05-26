@@ -72,6 +72,10 @@ void Cleanup() {
 
 	g_D3DHook.ReleaseDevices(true);
 
+	g_ScriptManagerThread.FreeScripts();
+
+	ScriptEngine::RemoveAllThreads();
+
 	if ( GetConsole()->IsAllocated() ) {
 		GetConsole()->DeAllocate();
 	}
