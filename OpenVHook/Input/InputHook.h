@@ -2,7 +2,6 @@
 #define __INPUT_HOOK_H__
 
 #include "..\OpenVHook.h"
-#include "..\..\SDK\inc\main.h"
 
 typedef struct KeyState
 {
@@ -11,6 +10,8 @@ typedef struct KeyState
 	BOOL wasDownBefore;
 	BOOL isUpNow;
 } KeyState_t;
+
+typedef void(*TWndProcFn)(UINT, WPARAM, LPARAM);
 
 extern KeyState				keyboardState[];
 extern std::set<TWndProcFn>	g_WndProcCb;

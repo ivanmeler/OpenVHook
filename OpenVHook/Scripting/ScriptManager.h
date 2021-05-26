@@ -73,8 +73,9 @@ public:
 
 	void			DoRun() override;
 	eThreadState	Reset( uint32_t scriptHash, void * pArgs, uint32_t argCount ) override;
-	bool					LoadScripts();
+	size_t					LoadScripts();
 	void					FreeScripts();
+	size_t					Count();
 	void					AddScript( HMODULE module, void( *fn )( ) );
 	void					RemoveScript( void( *fn )( ) );
 	void					RemoveScript( HMODULE module );

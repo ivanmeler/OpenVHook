@@ -2,8 +2,8 @@
 #include "ScriptEngine.h"
 #include "..\Utility\Log.h"
 #include "..\Utility\General.h"
-#include "..\ASI Loader\ASILoader.h"
 #include "..\DirectXHook\DirectXHook.h"
+#include "..\Utility\PEImage.h"
 #include "Types.h"
 #include "..\Input\InputHook.h"
 
@@ -41,13 +41,19 @@ void Script::Tick() {
 	else if (ScriptEngine::GetGameState() == GameStatePlaying) {
 
 		scriptFiber = CreateFiber(NULL, [](LPVOID handler) {
+			const char* script_name = "";
+#ifdef NDEBUG
 			__try {
-				LOG_PRINT("Launching script %s", reinterpret_cast<Script*>(handler)->name.c_str());
+#endif
+				// if debug, just throw the exception so we can debug
+				script_name = reinterpret_cast<Script*>(handler)->name.c_str();
+				LOG_PRINT("Launching script %s", script_name);
 				reinterpret_cast<Script*>( handler )->Run();
+#ifdef NDEBUG
 			} __except (EXCEPTION_EXECUTE_HANDLER) {
-
-				LOG_ERROR("Error in script->Run");
+				LOG_ERROR("Error in script->Run %s", script_name);
 			}
+#endif
 		}, this );
 	}
 }
@@ -98,57 +104,109 @@ eThreadState ScriptManagerThread::Reset( uint32_t scriptHash, void * pArgs, uint
 	return ScriptThread::Reset( scriptHash, pArgs, argCount );
 }
 
-bool ScriptManagerThread::LoadScripts() {
+size_t ScriptManagerThread::LoadScripts() {
+	
+	assert(m_scripts.empty());
+	
+    LOG_PRINT( "Loading *.asi plugins" );
 
-	if (!m_scripts.empty()) return false;
+    const std::string currentFolder = GetRunningExecutableFolder();
 
-	// load known scripts
-	for (auto && scriptName : m_scriptNames)
-	{
-		LOG_PRINT("Loading \"%s\"", scriptName.c_str());
-		HMODULE module = LoadLibraryA(scriptName.c_str());
-		if (module) {
-			LOG_PRINT("\tLoaded \"%s\" => 0x%p", scriptName.c_str(), module);
-		} else {
-			LOG_DEBUG("\tSkip \"%s\"", scriptName.c_str());
-		}
-	}
+    const auto loadPlugins = [&]( const std::string& asiFolder ) {
 
-	// ASILoader::Initialize only load new DLLs if called multiple times.
-	ASILoader::Initialize();
+        const std::string asiSearchQuery = asiFolder + "\\*.asi";
 
-	return true;
+        WIN32_FIND_DATAA fileData;
+        HANDLE fileHandle = FindFirstFileA( asiSearchQuery.c_str(), &fileData );
+        if ( fileHandle != INVALID_HANDLE_VALUE ) {
+
+            do {
+
+                const std::string pluginPath = asiFolder + "\\" + fileData.cFileName;
+
+                LOG_PRINT( "Loading \"%s\"", pluginPath.c_str() );
+
+                PEImage pluginImage;
+                if ( !pluginImage.Load( pluginPath ) ) {
+
+                    LOG_ERROR( "\tFailed to load image" );
+                    continue;
+                }
+
+                if (std::find(m_scriptNames.begin(), m_scriptNames.end(), fileData.cFileName) != m_scriptNames.end()) {
+                    LOG_DEBUG("\tSkip \"%s\"", fileData.cFileName);
+                    continue;
+                }
+
+                HMODULE module = LoadLibraryA( pluginPath.c_str() );
+                if ( module ) {
+                    LOG_PRINT( "\tLoaded \"%s\" => 0x%p", fileData.cFileName, module );
+                } else {
+                    DWORD errorMessageID = ::GetLastError();
+                    if ( errorMessageID == 0 )
+                        LOG_ERROR( "\tFailed to load" );
+
+                    LPSTR messageBuffer = nullptr;
+                    size_t size = FormatMessageA( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                                                  NULL, errorMessageID, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), ( LPSTR )&messageBuffer, 0, NULL );
+
+                    std::string message( messageBuffer, size );
+
+                    //Free the buffer.
+                    LocalFree( messageBuffer );
+                    LOG_ERROR( "\tFailed to load: %s", message.c_str() );
+                }
+
+            } while ( FindNextFileA( fileHandle, &fileData ) );
+
+            FindClose( fileHandle );
+        }
+    };
+
+    loadPlugins( currentFolder );
+
+    loadPlugins( currentFolder + "\\asi" );
+
+    LOG_PRINT( "Finished loading *.asi plugins" );
+
+	assert(m_scripts.size() == m_scriptNames.size());
+
+	return m_scripts.size();
 }
 
 void ScriptManagerThread::FreeScripts() {
-
-	scriptMap tempScripts;
-
-	for (auto && pair : m_scripts) {
-		tempScripts[pair.first] = pair.second;
-	}
+	
+	scriptMap tempScripts {m_scripts};
 
 	for (auto && pair : tempScripts) {
 		FreeLibrary( pair.first );
 	}
 
 	m_scripts.clear();
+	m_scriptNames.clear();
+}
+
+size_t ScriptManagerThread::Count()
+{
+	return m_scriptNames.size();
 }
 
 void ScriptManagerThread::AddScript( HMODULE module, void( *fn )( ) ) {
+	
+	std::unique_lock<std::mutex> lock(mutex); 
 
 	const std::string moduleName = GetModuleFullName( module );
 	const std::string shortName = GetFilename(moduleName);
 
 	if (m_scripts.find( module ) == m_scripts.end())	
-		LOG_PRINT("Registering script '%s' (0x%p)", shortName.c_str(), fn);
+		LOG_PRINT("Registering script '%s' (0x%p!0x%p)", shortName.c_str(), module, fn);
 	else 
-		LOG_PRINT("Registering additional script thread '%s' (0x%p)", shortName.c_str(), fn);
+		LOG_PRINT("Registering additional script thread '%s' (0x%p!0x%p)", shortName.c_str(), module, fn);
 
 	if ( find(m_scriptNames.begin(), m_scriptNames.end(), 
-		moduleName ) == m_scriptNames.end() )
+		shortName ) == m_scriptNames.end() )
 	{
-		m_scriptNames.push_back( moduleName );
+		m_scriptNames.push_back( shortName );
 	}
 
 	m_scripts[module].push_back(std::make_shared<Script>( fn, shortName ));
@@ -193,9 +251,9 @@ void DLL_EXPORT scriptRegister( HMODULE module, void( *function )( ) ) {
 	g_ScriptManagerThread.AddScript( module, function );
 }
 
-void DLL_EXPORT scriptRegisterAdditionalThread(HMODULE module, void(*function)()) {
+void DLL_EXPORT scriptRegisterAdditionalThread(HMODULE module, void(*LP_SCRIPT_MAIN)()) {
 
-	g_ScriptManagerThread.AddScript(module, function);
+	g_ScriptManagerThread.AddScript(module, LP_SCRIPT_MAIN);
 }
 
 void DLL_EXPORT scriptUnregister( void( *function )( ) ) {

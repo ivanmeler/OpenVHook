@@ -4,9 +4,6 @@
     <ClCompile Include="Input\InputHook.cpp">
       <Filter>Input</Filter>
     </ClCompile>
-    <ClCompile Include="ASI Loader\ASILoader.cpp">
-      <Filter>ASI Loader</Filter>
-    </ClCompile>
     <ClCompile Include="OpenVHook.cpp" />
     <ClCompile Include="Scripting\ScriptThread.cpp">
       <Filter>Scripting\Script Thread</Filter>
@@ -51,9 +48,6 @@
   <ItemGroup>
     <Filter Include="Input">
       <UniqueIdentifier>{e8950c58-a34c-458d-91df-a5429763f86f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ASI Loader">
-      <UniqueIdentifier>{0abb8b11-95af-4e5c-a947-4bb29115b7b7}</UniqueIdentifier>
     </Filter>
     <Filter Include="Utility">
       <UniqueIdentifier>{9d373d22-c87f-4e58-ac62-d07dd39a620d}</UniqueIdentifier>
@@ -105,9 +99,6 @@
     <ClInclude Include="OpenVHook.h" />
     <ClInclude Include="Input\InputHook.h">
       <Filter>Input</Filter>
-    </ClInclude>
-    <ClInclude Include="ASI Loader\ASILoader.h">
-      <Filter>ASI Loader</Filter>
     </ClInclude>
     <ClInclude Include="Scripting\pgCollection.h">
       <Filter>Scripting</Filter>

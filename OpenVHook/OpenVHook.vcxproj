@@ -55,7 +55,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_MBCS;DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
@@ -89,7 +89,6 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ASI Loader\ASILoader.cpp" />
     <ClCompile Include="DirectXHook\DirectXHook.cpp" />
     <ClCompile Include="OpenVHook.cpp" />
     <ClCompile Include="Input\InputHook.cpp" />
@@ -113,7 +112,6 @@
     <ClInclude Include="..\SDK\inc\types.h" />
     <ClInclude Include="DirectXHook\DirectXHook.h" />
     <ClInclude Include="Scripting\Pools.h" />
-    <ClInclude Include="ASI Loader\ASILoader.h" />
     <ClInclude Include="Input\InputHook.h" />
     <ClInclude Include="OpenVHook.h" />
     <ClInclude Include="Scripting\NativeInvoker.h" />
