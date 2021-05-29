@@ -105,66 +105,66 @@ size_t ScriptManagerThread::LoadScripts() {
 	
 	assert(m_scripts.empty());
 	
-    LOG_PRINT( "Loading *.asi plugins" );
+	LOG_PRINT( "Loading *.asi plugins" );
 
-    const std::string currentFolder = GetRunningExecutableFolder();
+	const std::string currentFolder = GetRunningExecutableFolder();
 
-    const auto loadPlugins = [&]( const std::string& asiFolder ) {
+	const auto loadPlugins = [&]( const std::string& asiFolder ) {
 
-        const std::string asiSearchQuery = asiFolder + "\\*.asi";
+		const std::string asiSearchQuery = asiFolder + "\\*.asi";
 
-        WIN32_FIND_DATAA fileData;
-        HANDLE fileHandle = FindFirstFileA( asiSearchQuery.c_str(), &fileData );
-        if ( fileHandle != INVALID_HANDLE_VALUE ) {
+		WIN32_FIND_DATAA fileData;
+		HANDLE fileHandle = FindFirstFileA( asiSearchQuery.c_str(), &fileData );
+		if ( fileHandle != INVALID_HANDLE_VALUE ) {
 
-            do {
+			do {
 
-                const std::string pluginPath = asiFolder + "\\" + fileData.cFileName;
+				const std::string pluginPath = asiFolder + "\\" + fileData.cFileName;
 
-                LOG_PRINT( "Loading \"%s\"", pluginPath.c_str() );
+				LOG_PRINT( "Loading \"%s\"", pluginPath.c_str() );
 
-                PEImage pluginImage;
-                if ( !pluginImage.Load( pluginPath ) ) {
+				PEImage pluginImage;
+				if ( !pluginImage.Load( pluginPath ) ) {
 
-                    LOG_ERROR( "\tFailed to load image" );
-                    continue;
-                }
+					LOG_ERROR( "\tFailed to load image" );
+					continue;
+				}
 
-                if (std::find(m_scriptNames.begin(), m_scriptNames.end(), fileData.cFileName) != m_scriptNames.end()) {
-                    LOG_DEBUG("\tSkip \"%s\"", fileData.cFileName);
-                    continue;
-                }
+				if (std::find(m_scriptNames.begin(), m_scriptNames.end(), fileData.cFileName) != m_scriptNames.end()) {
+					LOG_DEBUG("\tSkip \"%s\"", fileData.cFileName);
+					continue;
+				}
 
-                HMODULE module = LoadLibraryA( pluginPath.c_str() );
-                if ( module ) {
-                    LOG_PRINT( "\tLoaded \"%s\" => 0x%p", fileData.cFileName, module );
-                } else {
-                    DWORD errorMessageID = ::GetLastError();
-                    if ( errorMessageID == 0 )
-                        LOG_ERROR( "\tFailed to load" );
+				HMODULE module = LoadLibraryA( pluginPath.c_str() );
+				if ( module ) {
+					LOG_PRINT( "\tLoaded \"%s\" => 0x%p", fileData.cFileName, module );
+				} else {
+					DWORD errorMessageID = ::GetLastError();
+					if ( errorMessageID == 0 )
+						LOG_ERROR( "\tFailed to load" );
 
-                    LPSTR messageBuffer = nullptr;
-                    size_t size = FormatMessageA( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                                                  NULL, errorMessageID, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), ( LPSTR )&messageBuffer, 0, NULL );
+					LPSTR messageBuffer = nullptr;
+					size_t size = FormatMessageA( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+												  NULL, errorMessageID, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), ( LPSTR )&messageBuffer, 0, NULL );
 
-                    std::string message( messageBuffer, size );
+					std::string message( messageBuffer, size );
 
-                    //Free the buffer.
-                    LocalFree( messageBuffer );
-                    LOG_ERROR( "\tFailed to load: %s", message.c_str() );
-                }
+					//Free the buffer.
+					LocalFree( messageBuffer );
+					LOG_ERROR( "\tFailed to load: %s", message.c_str() );
+				}
 
-            } while ( FindNextFileA( fileHandle, &fileData ) );
+			} while ( FindNextFileA( fileHandle, &fileData ) );
 
-            FindClose( fileHandle );
-        }
-    };
+			FindClose( fileHandle );
+		}
+	};
 
-    loadPlugins( currentFolder );
+	loadPlugins( currentFolder );
 
-    loadPlugins( currentFolder + "\\asi" );
+	loadPlugins( currentFolder + "\\asi" );
 
-    LOG_PRINT( "Finished loading *.asi plugins" );
+	LOG_PRINT( "Finished loading *.asi plugins" );
 
 	assert(m_scripts.size() == m_scriptNames.size());
 
@@ -291,10 +291,19 @@ DLL_EXPORT uint64_t * nativeCall() {
 		__try {
 
 			fn( &g_context );
-            scrNativeCallContext::SetVectorResults(&g_context);
+			scrNativeCallContext::SetVectorResults(&g_context);
 		} __except ( EXCEPTION_EXECUTE_HANDLER ) {
-
-			LOG_ERROR( "Error in nativeCall" );
+#if 1
+			// some entities in pools failed in these functions
+			// cant find another native function to stop spamming
+			// guess no one need them either
+			if (g_hash != 0x9F47B058362C84B5		// Entity::GET_ENTITY_MODEL
+				&& g_hash != 0x7239B21A38F536BA)	// ENTITY::DOES_ENTITY_EXIST
+#endif
+			LOG_ERROR( "Error in nativeCall: oldHash=>handler(a1, ...): %p=>%p(%x)", g_hash, fn, g_context.GetArgument<uint64_t>(0));
+			
+			// zero result on exception so we can possibly handle it in script
+			g_context.ClearResult();
 		}
 	}
 
@@ -443,21 +452,21 @@ DLL_EXPORT void drawTexture(int id, int index, int level, int time,
 /*Input*/
 DLL_EXPORT void WndProcHandlerRegister(TWndProcFn function) 
 {
-    g_WndProcCb.insert(function);
+	g_WndProcCb.insert(function);
 }
 
 DLL_EXPORT void WndProcHandlerUnregister(TWndProcFn function) 
 {
-    g_WndProcCb.erase(function);
+	g_WndProcCb.erase(function);
 }
 
 /* D3d SwapChain */
 DLL_EXPORT void presentCallbackRegister(PresentCallback cb) 
 {
-    g_D3DHook.AddCallback(cb);
+	g_D3DHook.AddCallback(cb);
 }
 
 DLL_EXPORT void presentCallbackUnregister(PresentCallback cb) 
 {
-    g_D3DHook.RemoveCallback(cb);
+	g_D3DHook.RemoveCallback(cb);
 }

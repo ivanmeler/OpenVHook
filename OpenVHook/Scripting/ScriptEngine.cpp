@@ -277,13 +277,6 @@ bool ScriptEngine::Initialize() {
 		return false;
 	}
 
-	// ERR_SYS_PURE
-	static uint8_t block[2] = { 0xEB };
-	unsigned long OldProtection, OldProtection2;
-	VirtualProtect(script_location, 2, PAGE_EXECUTE_READWRITE, &OldProtection);
-	memcpy(&block, script_location, 2);
-	VirtualProtect(script_location, 2, OldProtection, &OldProtection2);
-
 	auto gameStatePattern =	pattern("83 3D ? ? ? ? ? 8A D9 74 0A");
 
 	location = gameStatePattern.count(1).get(0).get<char>(2);
@@ -405,7 +398,33 @@ void ScriptEngine::RemoveAllThreads()
 	g_ownedThreads.clear();
 }
 
+#ifdef DEBUG
+static int DumpAllNativeHashAndHandlers() {
+	LOG_DEBUG("GameBase: %p. Dumping native hashes => handlers. patience babe.", GetModuleHandle(NULL));
+	int count = 0;
+	FILE* dumpfile = fopen("dumped_natives.log", "w");
+	for (int x = 0; x < 0xFF; x++) {
+		NativeRegistration* table = registrationTable[x];
+		for (; table; table = table->getNextRegistration()) {
+			for (uint32_t i = 0; i < table->getNumEntries(); i++) {
+				auto newHash = table->getHash(i);
+				auto handler = table->handlers[i];
+				fprintf(dumpfile, "%p => %p\n",newHash, handler);
+				count++;
+			}
+		}
+	}
+	LOG_DEBUG("Dumped %d native hashes and handlers", count);
+	fclose(dumpfile);
+	return count;
+}
+#endif
+
 ScriptEngine::NativeHandler ScriptEngine::GetNativeHandler( uint64_t oldHash ) {
+
+#ifdef DEBUG
+	static int dumped_native_count = DumpAllNativeHashAndHandlers();
+#endif
 
 	auto cachePair = foundHashCache.find(oldHash);
 	if (cachePair != foundHashCache.end()) {
@@ -560,7 +579,7 @@ int ScriptEngine::GetGameVersion()
 		return 36;
 	case 0xF36C5010:
 		return 37;
-   	case 0x83483024:
+	case 0x83483024:
 		return 38;
 	case 0x3B8005:
 		return 39;

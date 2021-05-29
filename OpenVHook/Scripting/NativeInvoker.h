@@ -11,7 +11,7 @@ protected:
 	void *		m_pArgs;
 
 	uint32_t	m_nDataCount;
-    alignas(uintptr_t)uint8_t m_vectorSpace[192];
+	alignas(uintptr_t)uint8_t m_vectorSpace[192];
 
 public:
 
@@ -41,7 +41,7 @@ public:
 		return *(T*)&returnValues[idx];
 	}
 
-    static void(*SetVectorResults)(scrNativeCallContext*);
+	static void(*SetVectorResults)(scrNativeCallContext*);
 };
 
 class NativeContext : public scrNativeCallContext {
@@ -68,22 +68,26 @@ public:
 		memset(m_TempStack, 0, sizeof(m_TempStack));
 	}
 
-    template <typename T>
-    inline void Push(T value) {
-        static_assert(sizeof(T) <= ArgSize, "Argument has an invalid size");
+	template <typename T>
+	inline void Push(T value) {
+		static_assert(sizeof(T) <= ArgSize, "Argument has an invalid size");
 
-        *reinterpret_cast<uintptr_t*>(m_TempStack + ArgSize * m_nArgCount) = 0;
+		*reinterpret_cast<uintptr_t*>(m_TempStack + ArgSize * m_nArgCount) = 0;
 
-        *reinterpret_cast<T*>(m_TempStack + ArgSize * m_nArgCount) = value;
+		*reinterpret_cast<T*>(m_TempStack + ArgSize * m_nArgCount) = value;
 
-        m_nArgCount++;
-    }
+		m_nArgCount++;
+	}
 
-    template <typename T>
-    inline T GetResult() {
+	template <typename T>
+	inline T GetResult() {
 
-        return *reinterpret_cast<T*>(m_TempStack);
-    }
+		return *reinterpret_cast<T*>(m_TempStack);
+	}
+
+	inline void ClearResult() {
+		memset(m_TempStack, 0, sizeof(m_TempStack));
+	}
 };
 
 #define fullHashMapCount 6354
