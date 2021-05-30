@@ -398,7 +398,7 @@ void ScriptEngine::RemoveAllThreads()
 	g_ownedThreads.clear();
 }
 
-#ifdef DEBUG
+#if _DEBUG
 static int DumpAllNativeHashAndHandlers() {
 	LOG_DEBUG("GameBase: %p. Dumping native hashes => handlers. patience babe.", GetModuleHandle(NULL));
 	int count = 0;
@@ -409,7 +409,7 @@ static int DumpAllNativeHashAndHandlers() {
 			for (uint32_t i = 0; i < table->getNumEntries(); i++) {
 				auto newHash = table->getHash(i);
 				auto handler = table->handlers[i];
-				fprintf(dumpfile, "%p => %p\n",newHash, handler);
+				fprintf(dumpfile, "%llX => %p\n",newHash, handler);
 				count++;
 			}
 		}
@@ -422,7 +422,7 @@ static int DumpAllNativeHashAndHandlers() {
 
 ScriptEngine::NativeHandler ScriptEngine::GetNativeHandler( uint64_t oldHash ) {
 
-#ifdef DEBUG
+#if _DEBUG && 0
 	static int dumped_native_count = DumpAllNativeHashAndHandlers();
 #endif
 

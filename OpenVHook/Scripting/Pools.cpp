@@ -11,9 +11,21 @@ bool CPools::Initialize()
 	executable_meta executable;
 	executable.EnsureInit();
 
+	auto addressToEntityPattern = pattern("48 89 5c 24 ? 48 89 74 24 ? 57 48 83 ec 20 8b 15 ? ? ? ? 48 8b f9 48 83 c1 10 33 db");
+	
+	char* location = addressToEntityPattern.count(1).get(0).get<char>(0);
+	if (location == nullptr) {
+
+		LOG_ERROR("Unable to find addressToEntityPattern");
+		return false;
+	}
+
+	m_AddressToEntity = reinterpret_cast<decltype(m_AddressToEntity)>(location);
+	LOG_DEBUG("addressToEntity\t 0x%p (0x%.8X)", m_AddressToEntity, reinterpret_cast<uintptr_t>(m_AddressToEntity) - executable.begin());
+
 	auto pedPoolPattern = pattern("48 8B 05 ? ? ? ? 41 0F BF C8 0F BF 40 10"); 
 
-	char * location = pedPoolPattern.count(1).get(0).get<char>(3);
+	location = pedPoolPattern.count(1).get(0).get<char>(3);
 	if (location == nullptr) {
 
 		LOG_ERROR("Unable to find pedPoolPattern");

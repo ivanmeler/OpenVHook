@@ -17,7 +17,7 @@ public:
 
 	bool full() const
 	{
-		return m_count - (m_flags & 0x3FFFFFFF) <= 256;
+		return m_count - (m_flags & 0x3FFFFFFF) < 256;
 	}
 
 	bool isValid(int32_t index) const
@@ -44,14 +44,42 @@ public:
 	}
 };
 
-class fwGenericPool : public fwPool<void*>
+class GenericPool
 {
+public:
+	uint64_t m_poolStartAddress;
+	uint8_t* m_byteArray;
+	int32_t  m_count;
+	int32_t  m_itemSize;
+	int32_t  _unk1;
+	double   _unk2;
+
+
+	inline bool isValid(int i)
+	{
+		assert(i >= 0);
+		return mask(i) != 0;
+	}
+
+	inline uint64_t getAddress(int i)
+	{
+		assert(i >= 0);
+		return mask(i) & (m_poolStartAddress + i * m_itemSize);
+	}
+
+private:
+	inline long long mask(int i)
+	{
+		assert(i >= 0);
+		long long num1 = m_byteArray[i] & 0x80; // check for high bit.
+		return ~((num1 | -num1) >> 63);
+	}
 };
 
 class VehiclePool
 {
 public:
-	uint64_t **m_pData;		// off=0x00-0x08
+	uint64_t *m_pData;		// off=0x00-0x08
 	uint32_t m_size;				// off=0x08-0x0C
 	char pad0[0x24];
 	uint32_t* m_bitMap;			// off=0x30-0x38
@@ -60,10 +88,11 @@ public:
 
 	bool isValid(int32_t i) const
 	{
+		assert(i >= 0);
 		return m_bitMap[i >> 5] >> (i & 0x1F) & 1;
 	}
 
-	uint64_t* getAddress(int32_t i) const
+	uint64_t getAddress(int32_t i) const
 	{
 		return m_pData[i];
 	}

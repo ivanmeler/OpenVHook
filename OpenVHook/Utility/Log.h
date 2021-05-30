@@ -7,6 +7,7 @@
 #define LOG_DEBUG( fmt, ...)	GetLog()->Write( eLogType::LogTypeDebug,	fmt, ##__VA_ARGS__ )
 #define LOG_WARNING( fmt, ...)	GetLog()->Write( eLogType::LogTypeWarning,	fmt, ##__VA_ARGS__ )
 #define LOG_ERROR( fmt, ...)	GetLog()->Write( eLogType::LogTypeError,	fmt, ##__VA_ARGS__ )
+#define LOG_FILE( fmt, ...)	GetLog()->Write( eLogType::LogTypeFile,	fmt, ##__VA_ARGS__ )
 
 namespace Utility {
 
@@ -15,6 +16,7 @@ namespace Utility {
 		LogTypeDebug,
 		LogTypeWarning,
 		LogTypeError,
+		LogTypeFile,
 	};
 
 	typedef std::map<int32_t, int32_t> intIntMap;

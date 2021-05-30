@@ -5,15 +5,20 @@
 
 class CPools
 {
-	fwPool<EntityRef> **		m_pEntityPool = 0;
-	VehiclePool ***				m_pVehiclePool = 0;
-	fwGenericPool **			m_pPedPool = 0;
-	fwGenericPool **			m_pObjectPool = 0;
-	fwGenericPool **			m_pPickupsPool = 0;
+	fwPool<EntityRef> **	m_pEntityPool = 0;
+	VehiclePool ***			m_pVehiclePool = 0;
+	GenericPool **			m_pPedPool = 0;
+	GenericPool **			m_pObjectPool = 0;
+	GenericPool **			m_pPickupsPool = 0;
 
-
+	int(*m_AddressToEntity)(int64_t) = nullptr;
+	
 public:
 	bool Initialize();
+
+	inline int AddressToEntity(int64_t i) const {
+		return m_AddressToEntity(i);
+	}
 
 	fwPool<EntityRef> * GetEntityPool() const {
 		return *m_pEntityPool;
@@ -23,15 +28,15 @@ public:
 		return **m_pVehiclePool;
 	}
 
-	fwGenericPool * GetPedPool() const {
+	GenericPool * GetPedPool() const {
 		return *m_pPedPool;
 	}
 
-	fwGenericPool * GetObjectsPool() const {
+	GenericPool * GetObjectsPool() const {
 		return *m_pObjectPool;
 	}
 
-	fwGenericPool * GetPickupsPool() const {
+	GenericPool * GetPickupsPool() const {
 		return *m_pPickupsPool;
 	}
 };

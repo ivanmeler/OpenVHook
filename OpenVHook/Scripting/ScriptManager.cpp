@@ -282,7 +282,53 @@ void DLL_EXPORT nativePush64( uint64_t value ) {
 	g_context.Push( value );
 }
 
+#if _DEBUG
+uint64_t* nativeCallWithLog()
+{
+	// copy args, which will be overwritten by result
+	auto args = new uint64_t[g_context.GetArgumentCount()];
+	for (int i = 0; i < g_context.GetArgumentCount(); i++)
+	{
+		args[i] = g_context.GetArgument<uint64_t>(i);
+	}
+	bool has_exception = false;
+	uint64_t result = 0;
+
+	auto fn = ScriptEngine::GetNativeHandler( g_hash );
+
+	if ( fn != 0 ) {
+
+		__try {
+
+			fn( &g_context );
+			scrNativeCallContext::SetVectorResults(&g_context);
+			result = g_context.GetResult<uint64_t>();
+		} __except ( EXCEPTION_EXECUTE_HANDLER ) {
+			has_exception = true;
+			// zero result on exception so we can possibly handle it in script
+			g_context.ClearResult();
+		}
+	}
+	
+	char logData[1024]{};
+	int loglen =snprintf(logData, sizeof(logData), "nativeCall: oldHash:0x%016llX, Exception:%d, Result:0x%016llX, Args: ", g_hash, has_exception, result);
+	for (int i = 0; i<g_context.GetArgumentCount(); i++)
+	{
+		int extra_len = snprintf(logData + loglen, sizeof(logData) - loglen, "%llu, ", args[i]);
+		loglen += extra_len;
+	}
+	delete[] args;
+	LOG_FILE(logData);
+
+	return reinterpret_cast<uint64_t*>( g_context.GetResultPointer() );
+}
+#endif
+
 DLL_EXPORT uint64_t * nativeCall() {
+
+#if _DEBUG && 0
+	return nativeCallWithLog();
+#endif
 
 	auto fn = ScriptEngine::GetNativeHandler( g_hash );
 
@@ -293,13 +339,6 @@ DLL_EXPORT uint64_t * nativeCall() {
 			fn( &g_context );
 			scrNativeCallContext::SetVectorResults(&g_context);
 		} __except ( EXCEPTION_EXECUTE_HANDLER ) {
-#if 1
-			// some entities in pools failed in these functions
-			// cant find another native function to stop spamming
-			// guess no one need them either
-			if (g_hash != 0x9F47B058362C84B5		// Entity::GET_ENTITY_MODEL
-				&& g_hash != 0x7239B21A38F536BA)	// ENTITY::DOES_ENTITY_EXIST
-#endif
 			LOG_ERROR( "Error in nativeCall: oldHash=>handler(a1, ...): %p=>%p(%x)", g_hash, fn, g_context.GetArgument<uint64_t>(0));
 			
 			// zero result on exception so we can possibly handle it in script
@@ -367,9 +406,12 @@ int DLL_EXPORT worldGetAllVehicles(int* array, int arraySize) {
 	{
 		if (i >= arraySize) break;
 
-		if (vehiclePool->m_bitMap[i] >= 0)
+		if (uint64_t addr = vehiclePool->getAddress(i))
 		{
-			array[index++] = (i << 8) + vehiclePool->m_bitMap[i];
+			if (int entity = pools.AddressToEntity(addr))
+			{
+				array[index++] = entity;
+			}
 		}
 	}
 
@@ -385,10 +427,13 @@ int DLL_EXPORT worldGetAllPeds(int* array, int arraySize) {
 	for (auto i = 0; i < pedPool->m_count; i++)
 	{
 		if (i >= arraySize) break;
-
-		if (pedPool->m_bitMap[i] >= 0)
+		
+		if (uint64_t addr = pedPool->getAddress(i))
 		{
-			array[index++] = pedPool->getHandle(i);
+			if (int entity = pools.AddressToEntity(addr))
+			{
+				array[index++] = entity;
+			}
 		}
 	}
 
@@ -404,10 +449,13 @@ int DLL_EXPORT worldGetAllObjects(int* array, int arraySize) {
 	for (auto i = 0; i < objectPool->m_count; i++)
 	{
 		if (i >= arraySize) break;
-
-		if (objectPool->m_bitMap[i] >= 0)
+		
+		if (uint64_t addr = objectPool->getAddress(i))
 		{
-			array[index++] = objectPool->getHandle(i);
+			if (int entity = pools.AddressToEntity(addr))
+			{
+				array[index++] = entity;
+			}
 		}
 	}
 
@@ -423,10 +471,13 @@ int DLL_EXPORT worldGetAllPickups(int* array, int arraySize) {
 	for (auto i = 0; i < pickupPool->m_count; i++)
 	{
 		if (i >= arraySize) break;
-
-		if (pickupPool->m_bitMap[i] >= 0)
+		
+		if (uint64_t addr = pickupPool->getAddress(i))
 		{
-			array[index++] = pickupPool->getHandle(i);
+			if (int entity = pools.AddressToEntity(addr))
+			{
+				array[index++] = entity;
+			}
 		}
 	}
 
